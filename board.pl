@@ -6,16 +6,16 @@
 
 % board(0, 0, z, z, 100). % row, column, type, color, id
 board(3, 3, q1, b, 1).
-board(4, 3, a2, b, 2).
-board(3, 2, b1, w, 3).
+% board(4, 3, a2, b, 2).
+board(3, 2, b1, w, 1).
 % board(2, 3, b2, b, 4).
 % board(5, 3, aa1, w, 5).
 % board(4, 4, aa2, b, 6).
-board(2, 4, s1, w, 6).
-board(4, 2, b2, w, 5).
+board(2, 4, s1, w, 2).
+board(4, 2, b2, w, 3).
 board(3, 4, s2, w, 4).
 
-last_used_id(5). % marca la cantidad de piezas que hay en el tablero y ademas sirve para ponerle el id a las piezas nuevas.
+last_used_id(4). % marca la cantidad de piezas que hay en el tablero y ademas sirve para ponerle el id a las piezas nuevas.
 
 count(0). % variable auxiliar que se usa en el metodo is_valid_board
 
@@ -50,19 +50,19 @@ get_ady_free(OldRow, OldColumn, [_, _ | T], T1) :-
 is_valid_board(Id) :- 
     retractall(visited(_)),
     fix_count(0),
-    is_valid_board(Id),
+    is_valid_board_aux(Id),
     last_used_id(X),
     count(Amount),
     Amount =:= X,
     !.
 
-is_valid_board(_) :-
+is_valid_board_aux(_) :-
     last_used_id(X),
     count(Amount),
     Amount =:= X,
     !.
 
-is_valid_board(Id) :-
+is_valid_board_aux(Id) :-
     findall(X, visited(X), Visited),
     is_in_visited(Id, Visited, R),
     % format("R vale ~w\n", [R]),
@@ -75,12 +75,14 @@ is_valid_board(Id) :-
     address(Address),
     get_ady_taken(Row, Col, Address, Adj),
     member(Now, Adj),
-    is_valid_board(Now).
+    is_valid_board_aux(Now),
+    !.
 
 is_in_visited(Id, Visited, R) :-
     R is 0,
     member(Id, Visited),
-    !.
+    !,
+    fail.
 
 is_in_visited(Id, _, R) :-
     assert(visited(Id)),
