@@ -1,19 +1,21 @@
 :- [
-    '/workstate_prolog/Hive/utils.pl'
+    './utils.pl'
 ].
 
-:- dynamic [board/5, last_used_id/1, visited/1, count/1].
+:- dynamic [board/6, last_used_id/1, visited/1, count/1].
 
-% board(0, 0, z, z, 100). % row, column, type, color, id
-board(3, 3, q1, b, 1).
-% board(4, 3, a2, b, 2).
-board(3, 2, b1, w, 1).
-% board(2, 3, b2, b, 4).
-% board(5, 3, aa1, w, 5).
-% board(4, 4, aa2, b, 6).
-board(2, 4, s1, w, 2).
-board(4, 2, b2, w, 3).
-board(3, 4, s2, w, 4).
+% board(row, column, type, color, id,stackPosition)
+%stackPosition !=0 si es un 
+% board(0, 0, z, z, 100). 
+% board(3, 3, q1, b, 1,0).
+% % board(4, 3, a2, b, 2).
+% board(3, 2, b1, w, 1,0).
+% % board(2, 3, b2, b, 4).
+% % board(5, 3, aa1, w, 5).
+% % board(4, 4, aa2, b, 6).
+% board(2, 4, s1, w, 2,0).
+% board(4, 2, b2, w, 3,0).
+% board(3, 4, s2, w, 4,0).
 
 last_used_id(4). % marca la cantidad de piezas que hay en el tablero y ademas sirve para ponerle el id a las piezas nuevas.
 
@@ -26,7 +28,7 @@ get_ady_taken(_, _, [], []) :- !.
 get_ady_taken(OldRow, OldColumn, [R, C | T], [Id | T1]) :-
     NewRow is OldRow + R,
     NewCol is OldColumn + C,
-    board(NewRow, NewCol, _, _, Id),
+    board(NewRow, NewCol, _, _, Id,_),
     get_ady_taken(OldRow, OldColumn, T, T1),
     !.
 
@@ -39,7 +41,7 @@ get_ady_free(_, _, [], []) :- !.
 get_ady_free(OldRow, OldColumn, [R, C | T], [Id | T1]) :-
     NewRow is OldRow + R,
     NewCol is OldColumn + C,
-    not(board(NewRow, NewCol, _, _, Id)),
+    not(board(NewRow, NewCol, _, _, Id,_)),
     get_ady_free(OldRow, OldColumn, T, T1),
     !.
 
@@ -70,7 +72,7 @@ is_valid_board_aux(Id) :-
     % count(TemporalCounter),
     % format("counter ~w", [TemporalCounter]),
     % format("el id es ~w\n", [Id]),
-    board(Row, Col, _, _, Id),
+    board(Row, Col, _, _, Id,_),
     % format("las posiciones de la ficha son ~w , ~w\n", [Row, Col]),
     address(Address),
     get_ady_taken(Row, Col, Address, Adj),
