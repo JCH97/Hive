@@ -89,7 +89,7 @@ valid_queen_moves(board(R,C,q,Color,Id,SP),MovesList):-
     print('no insect above me.'),
     will_insect_not_break_hive(board(R,C,q,Color,Id,SP)),
     print('will_insect_not_break_hive'),
-    address(Addr),
+    address1(Addr),
     valid_queen_moves_aux(R,C,Addr,MovesList).   
 
 valid_queen_moves(board(R,C,q,Color,Id,SP),[]).

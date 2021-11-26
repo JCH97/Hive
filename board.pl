@@ -17,7 +17,7 @@
 % board(4, 2, b2, w, 3,0).
 % board(3, 4, s2, w, 4,0).
 
-last_used_id(4). % marca la cantidad de piezas que hay en el tablero y ademas sirve para ponerle el id a las piezas nuevas.
+last_used_id(5). % marca la cantidad de piezas que hay en el tablero y ademas sirve para ponerle el id a las piezas nuevas.
 
 count(0). % variable auxiliar que se usa en el metodo is_valid_board
 
