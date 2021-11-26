@@ -1,4 +1,4 @@
-[
+:-[
     './utils.pl'
 ].
 
@@ -50,8 +50,7 @@ get_ady_free(OldRow, OldColumn, [_, _ | T], T1) :-
 
 
 is_valid_board(Id) :- 
-    retractall(visited(_)),
-    fix_count(0),
+    clear(),
     is_valid_board_aux(Id),
     last_used_id(X),
     count(Amount),
@@ -96,3 +95,8 @@ fix_count(Sum) :-
     assertz(count(T)),
     retract(count(_)), 
     !.
+
+clear() :-
+    retractall(visited(_)),
+    retractall(count(_)),
+    assert(count(0)).
