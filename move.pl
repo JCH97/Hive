@@ -19,13 +19,13 @@
 % board(2, 4, b2, w, 3,1).
 % board(3, 4, s2, w, 4,0).
 
-board(0, 0, aa, b, 1,0).
+board(0, 0, b, b, 1,0).
 % board(1, 1, q1, b, 1,1).
 
-board(1, -1, q1, b, 2,0).
+board(1, -1, b, b, 2,0).
 board(2, 0, b, b, 3,0).
-board(1, 1, q1, b, 4,0).
-board(-1, 1, q1, b, 5,0).
+board(1, 1, b, b, 4,0).
+board(-1, 1, b, b, 5,0).
 % board(-2, 0, q1, b, 4,0).
 % board(-1, -1, q1, b, 7,0).
 
@@ -37,6 +37,23 @@ any([X|Y], C) :-
     T,
     !;
     any(Y,C).
+
+list_max([H | T],Max):-
+    listmax_aux(T,H,Max).
+listmax_aux([H |List], Currentmax,Max):-
+    Currentmax < H,
+    listmax_aux(List,H,Max).
+
+listmax_aux([H |List], Currentmax,Max):-    
+    listmax_aux(List,Currentmax,Max).
+listmax_aux([], Currentmax,Max):- 
+    Max is Currentmax. 
+
+
+highest_SP(R,C,SP):-
+    findall(X, board(R,C,_,_,_,X),P),
+    list_max(P,SP).
+
 
 get_location_by_id([Id|T], Locations):-
     board(R,C,_,_,Id,_),
@@ -64,9 +81,11 @@ will_insect_not_break_hive(board(R,C,Type,Color,Id,SP)):-
     assert(last_used_id(Count)).
 
 will_insect_not_break_hive(board(R,C,Type,Color,Id,SP)):-
+    last_used_id(Count),
+    Aux is Count+1,
     assert(board(R,C,Type,Color,Id,SP)),
     retract(last_used_id(_)),
-    assert(last_used_id(Count)),
+    assert(last_used_id(Aux)),
     !,fail.
 
 
@@ -93,6 +112,24 @@ adj_path_out(R,C,[R_Dir1,C_Dir1],Moves):-
     Moves = [[R1_aux,C1_aux],[R2_aux,C2_aux]].
 
 adj_path_out(R,C,[R_Dir1,C_Dir1],[]).
+
+get_adj_valid(board(R,C,T,Color,Id, StackPosition),[[R1,C1]|AdjFree],MovesList):-
+    retract(board(R,C,T,Color,Id, StackPosition)),
+    assert(board(R1,C1,T,Color,Id, StackPosition)),
+    is_valid_board(Id),
+    retract(board(R1,C1,T,Color,Id, StackPosition)),
+    assert(board(R,C,T,Color,Id, StackPosition)),
+
+    get_adj_valid(board(R,C,T,Color,Id, StackPosition),AdjFree,MovesListAux),
+    append([[R1,C1]],MovesListAux,MovesList).
+    
+get_adj_valid(board(R,C,T,Color,Id, StackPosition),[[R1,C1]|AdjFree],MovesList):-
+    retract(board(R1,C1,T,Color,Id, StackPosition)),
+    assert(board(R,C,T,Color,Id, StackPosition)),
+
+    get_adj_valid(board(R,C,T,Color,Id, StackPosition),AdjFree,MovesList).
+    
+get_adj_valid(board(R,C,T,Color,Id, StackPosition),[],[]).
 
 % Queen Bee
 % move_queen_bee(OldRow, OldColumn, Type, Adj) :-
@@ -143,7 +180,8 @@ valid_queen_moves(board(R,C,q,Color,Id,SP),MovesList):-
     will_insect_not_break_hive(board(R,C,q,Color,Id,SP)),
     print('will_insect_not_break_hive \n'),
     address(Addr),
-    adj_path_out(R,C,Addr,MovesList).   
+    adj_path_out(R,C,Addr,MovesList1),   
+    get_adj_valid(board(R,C,q,Color,Id,SP),MovesList1,MovesList).
 
     
 move_queen(board(R,C,q,Color,Id, StackPosition),R_new,C_new):-
@@ -153,8 +191,7 @@ move_queen(board(R,C,q,Color,Id, StackPosition),R_new,C_new):-
     print(Moves),
     member(X,Moves),
     retract(board(R,C,q,Color,Id, StackPosition)),
-    assert(board(R_new,C_new,q,Color,Id, 0)),
-    is_valid_board(Id),
+    assert(board(R_new,C_new,q,Color,Id, 0)),    
     !.
 
 move_queen(board(R,C,q,Color,Id, StackPosition),R_new,C_new):-
@@ -198,13 +235,13 @@ valid_aa_move_aux(board(R, C, aa, Color, Id, StackPosition), [HAdj | TAdj], Vali
 
     walk_for_direction(TR, TC, aa, DirectionRow, DirectionCol, AuxValidPos1),
 
-    print(AuxValidPos).
+    print(AuxValidPos),
 
-    valid_aa_move_aux(board(R, C, aa, Color, Id, StackPosition), [HAdj | TAdj], AuxValidPos2),
+    valid_aa_move_aux(board(R, C, aa, Color, Id, StackPosition), TAdj, AuxValidPos2),
 
     append(AuxValidPos1, AuxValidPos2, ValidPos).
     
-
+valid_aa_move_aux(board(_, _, aa, _, _, _), [], []).
     % append(H, )
     % valid_aa_move_aux(board())
 
@@ -233,35 +270,28 @@ valid_beetle_moves(board(R,C,b,Color,Id,SP),MovesList):-
     will_insect_not_break_hive(board(R,C,b,Color,Id,SP)),
     print('will_insect_not_break_hive \n'),
     address(Addr),
-    adj_path_out(R,C,Addr,AdjMoves),
+    adj_path_out(R,C,Addr,Adjs),
+    get_adj_valid(board(R,C,b,Color,Id,SP),Adjs, AdjMoves),
     get_ady_taken(R,C,Addr, AdjTakenId),
     get_location_by_id(AdjTakenId, AdjTakenLoc),
     append(AdjMoves,AdjTakenLoc,MovesList).
 
 move_beetle(board(R,C,b,Color,Id, StackPosition),R_new,C_new):-
-    board(R,C,q,Color,Id, StackPosition),
+    board(R,C,b,Color,Id, StackPosition),
     valid_moves(board(R,C,b,Color,Id, StackPosition), Moves),
     X = [R_new,C_new],
     print(Moves),
     member(X,Moves),
-    retract(board(R,C,q,Color,Id, StackPosition)),
-    assert(board(R_new,C_new,q,Color,Id, 0)),
-    is_valid_board(Id),
+    retract(board(R,C,b,Color,Id, StackPosition)),
+    highest_SP(R_new,C_new,SP),
+    SP1 is SP+1,
+    assert(board(R_new,C_new,b,Color,Id, SP1)),
     !.
 
 move_beetle(board(R,C,b,Color,Id, StackPosition),R_new,C_new):-
     format('Invalid move'),
-    board(R,C,b,Color,Id, StackPosition),
-    retract(board(R_new,C_new,b,Color,Id, 0)),
-    assert(board(R,C,b,Color,Id, StackPosition)),
     !,fail.
     
 %--------------------------------------------------------------------
 
-get_location_by_id([Id|T], Locations):-
-    board(R,C,_,_,Id,_),
-    get_location_by_id(T, LocAux),
-    append([[R,C]],LocAux,Locations).
-
-get_location_by_id([],[]).
 
