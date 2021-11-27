@@ -26,7 +26,7 @@ board(1, -1, q1, b, 2,0).
 board(2, 0, q1, b, 3,0).
 board(1, 1, q1, b, 4,0).
 board(-1, 1, q1, b, 5,0).
-% board(-2, 0, q1, b, 6,0).
+board(-2, 0, q1, b, 6,0).
 % board(-1, -1, q1, b, 7,0).
 
 
@@ -101,13 +101,14 @@ adj_path_out(R,C,[R_Dir1,C_Dir1],[]).
 valid_moves(board(R,C,q,Color,Id, StackPosition),Moves):-
     valid_queen_moves(board(R,C,q,Color,Id,StackPosition),MovesList),
     print(MovesList),    
-    list_to_set(MovesList,Moves).
+    list_to_set(MovesList,Moves),!.
 
 move(board(R,C,q,Color,Id, StackPosition), R_new,C_new):-
     move_queen(board(R,C,q,Color,Id, StackPosition),R_new,C_new).
 % ----------------Queen Move-------------------------------------
 
 valid_queen_moves(board(R,C,q,Color,Id,SP),MovesList):-
+    board(R,C,q,Color,Id,SP),
     not(insect_above_me(board(R,C,q,Color,Id,SP))),
     print('no insect above me. \n'),
     will_insect_not_break_hive(board(R,C,q,Color,Id,SP)),
@@ -115,45 +116,24 @@ valid_queen_moves(board(R,C,q,Color,Id,SP),MovesList):-
     address(Addr),
     adj_path_out(R,C,Addr,MovesList).   
 
-
-
-valid_queen_moves_aux(R,C,[R_Dir1,C_Dir1, R_Dir2, C_Dir2 | Addr], Moves):-
-    R1_aux is R+R_Dir1,C1_aux is C+C_Dir1,
-    R2_aux is R+R_Dir2,C2_aux is C+C_Dir2,
-    not(board(R1_aux,C1_aux,_,_,_,_)),not(board(R2_aux,C2_aux,_,_,_,_)),
-    Validated = [[R1_aux,C1_aux],[R2_aux,C2_aux]],    
-    valid_queen_moves_aux(R,C,[R_Dir2,C_Dir2|Addr],MovesAux),
-    append(Validated,MovesAux,Moves),
-    print('Moves: ' ),
-    print(MovesAux).
-
-valid_queen_moves_aux(R,C,[R_Dir1,C_Dir1, R_Dir2, C_Dir2 | Addr], Moves):-
-    valid_queen_moves_aux(R,C,[R_Dir2,C_Dir2|Addr],Moves).
-
-valid_queen_moves_aux(R,C,[R_Dir1,C_Dir1],Moves):-
-    R1_aux is R+R_Dir1,C1_aux is C+C_Dir1,
-    close_cycle_addr([R2_Dir2,C2_Dir2]),
-    R2_aux is R+R_Dir2,C2_aux is C+C_Dir2,
-    not(board(R1_aux,C1_aux,_,_,_,_)),not(board(R2_aux,C2_aux,_,_,_,_)),
-    Moves = [[R1_aux,C1_aux],[R2_aux,C2_aux]].
     
 move_queen(board(R,C,q,Color,Id, StackPosition),R_new,C_new):-
     board(R,C,q,Color,Id, StackPosition),
-
     valid_moves(board(R,C,q,Color,Id, StackPosition), Moves),
     X = [R_new,C_new],
     print(Moves),
     member(X,Moves),
-
     retract(board(R,C,q,Color,Id, StackPosition)),
     assert(board(R_new,C_new,q,Color,Id, 0)),
-    is_valid_board(Id).
+    is_valid_board(Id),
+    !.
 
 move_queen(board(R,C,q,Color,Id, StackPosition),R_new,C_new):-
-    retract(board(R_new,C_new,q,Color,Id, 0)),
-    assert(board(R,C,q,Color,Id, StackPosition)),
     format('Invalid move'),
-    !.
+    board(R,C,q,Color,Id, StackPosition),
+    retract(board(R_new,C_new,q,Color,Id, 0)),
+    assert(board(R,C,q,Color,Id, 0)),
+    !,fail.
 
 
 
