@@ -23,10 +23,10 @@ board(0, 0, aa, b, 1,0).
 % board(1, 1, q1, b, 1,1).
 
 board(1, -1, q1, b, 2,0).
-board(2, 0, q1, b, 3,0).
+board(2, 0, b, b, 3,0).
 board(1, 1, q1, b, 4,0).
 board(-1, 1, q1, b, 5,0).
-board(-2, 0, q1, b, 6,0).
+% board(-2, 0, q1, b, 4,0).
 % board(-1, -1, q1, b, 7,0).
 
 
@@ -38,6 +38,12 @@ any([X|Y], C) :-
     !;
     any(Y,C).
 
+get_location_by_id([Id|T], Locations):-
+    board(R,C,_,_,Id,_),
+    get_location_by_id(T, LocAux),
+    append([[R,C]],LocAux,Locations).
+
+get_location_by_id([],[]).
 
 insect_above_me(board(R,C,_,_,_,SP)):-
     board(R,C,_,_,_,SP1),
@@ -52,9 +58,17 @@ will_insect_not_break_hive(board(R,C,Type,Color,Id,SP)):-
     assert(last_used_id(Aux)),
     is_valid_board(Aux),
     print('board is valid \n'),
+    !,
     assert(board(R,C,Type,Color,Id,SP)),
     retract(last_used_id(_)),
     assert(last_used_id(Count)).
+
+will_insect_not_break_hive(board(R,C,Type,Color,Id,SP)):-
+    assert(board(R,C,Type,Color,Id,SP)),
+    retract(last_used_id(_)),
+    assert(last_used_id(Count)),
+    !,fail.
+
 
 adj_path_out(R,C,[R_Dir1,C_Dir1, R_Dir2, C_Dir2 | Addr], Moves):-
     R1_aux is R+R_Dir1,C1_aux is C+C_Dir1,
@@ -103,14 +117,23 @@ valid_moves(board(R,C,q,Color,Id, StackPosition),Moves):-
     print(MovesList),    
     list_to_set(MovesList,Moves),!.
 
+valid_moves(board(R,C,b,Color,Id, StackPosition),Moves):-
+    valid_beetle_moves(board(R,C,b,Color,Id,StackPosition),MovesList),
+    print(MovesList),    
+    list_to_set(MovesList,Moves),!.
+
+
 move(board(R,C,q,Color,Id, StackPosition), R_new,C_new):-
     move_queen(board(R,C,q,Color,Id, StackPosition),R_new,C_new),
     !.
 
 move(board(R, C, aa, Color, Id, StackPosition), R_new, C_new):-
-    move_queen(board(R, C, q, Color, Id, StackPosition), R_new, C_new),
+    move_queen(board(R, C, aa, Color, Id, StackPosition), R_new, C_new),
     !.
 
+
+move(board(R,C,b,Color,Id, StackPosition), R_new,C_new):-
+    move_beetle(board(R,C,b,Color,Id, StackPosition),R_new,C_new),!.
 % ----------------Queen Move-------------------------------------
 
 valid_queen_moves(board(R,C,q,Color,Id,SP),MovesList):-
@@ -141,6 +164,7 @@ move_queen(board(R,C,q,Color,Id, StackPosition),R_new,C_new):-
     assert(board(R,C,q,Color,Id, 0)),
     !,fail.
 
+%--------------------------------------------------------------------
 
 % ----------------------- Grasshopper Move ---------------------------------
 
@@ -190,9 +214,51 @@ walk_for_direction(R, C, Type, DirectionRow, DirectionCol, ValidPos) :-
 
     NewRow is DirectionRow + R,
     NewCol is DirectionCol + C,
-
     walk_for_direction(NewRow, NewCol, Type, DirectionRow, DirectionCol, ValidPosAux),
 
     append([NewRow, NewCol], ValidPosAux, ValidPos).
 
 walk_for_direction(_, _, _, _, _, []).
+
+%-----------------Beetle move----------------------------------------
+% valid_beetle_moves(board(R,C,b,Color,Id,StackPosition),MovesList):-
+
+valid_beetle_moves(board(R,C,b,Color,Id,SP),MovesList):-
+    board(R,C,b,Color,Id,SP),
+    not(insect_above_me(board(R,C,b,Color,Id,SP))),
+    print('no insect above me. \n'),
+    will_insect_not_break_hive(board(R,C,b,Color,Id,SP)),
+    print('will_insect_not_break_hive \n'),
+    address(Addr),
+    adj_path_out(R,C,Addr,AdjMoves),
+    get_ady_taken(R,C,Addr, AdjTakenId),
+    get_location_by_id(AdjTakenId, AdjTakenLoc),
+    append(AdjMoves,AdjTakenLoc,MovesList).
+
+move_beetle(board(R,C,b,Color,Id, StackPosition),R_new,C_new):-
+    board(R,C,q,Color,Id, StackPosition),
+    valid_moves(board(R,C,b,Color,Id, StackPosition), Moves),
+    X = [R_new,C_new],
+    print(Moves),
+    member(X,Moves),
+    retract(board(R,C,q,Color,Id, StackPosition)),
+    assert(board(R_new,C_new,q,Color,Id, 0)),
+    is_valid_board(Id),
+    !.
+
+move_beetle(board(R,C,b,Color,Id, StackPosition),R_new,C_new):-
+    format('Invalid move'),
+    board(R,C,b,Color,Id, StackPosition),
+    retract(board(R_new,C_new,b,Color,Id, 0)),
+    assert(board(R,C,b,Color,Id, StackPosition)),
+    !,fail.
+    
+%--------------------------------------------------------------------
+
+get_location_by_id([Id|T], Locations):-
+    board(R,C,_,_,Id,_),
+    get_location_by_id(T, LocAux),
+    append([[R,C]],LocAux,Locations).
+
+get_location_by_id([],[]).
+
