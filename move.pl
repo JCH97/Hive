@@ -201,8 +201,6 @@ move_queen(board(R,C,q,Color,Id, StackPosition),R_new,C_new):-
     assert(board(R,C,q,Color,Id, 0)),
     !,fail.
 
-%--------------------------------------------------------------------
-
 % ----------------------- Grasshopper Move ---------------------------------
 
 valid_aa_move(board(R, C, aa, Color, Id, StackPosition), ValidPos) :-
@@ -211,8 +209,9 @@ valid_aa_move(board(R, C, aa, Color, Id, StackPosition), ValidPos) :-
     not(insect_above_me(board(R, C, aa, Color, Id, StackPosition))),
     format("no insect above me. \n"),
 
-    % will_insect_not_break_hive(board(R,C,q,Color,Id,SP)), => fail here
+    % will_insect_not_break_hive(board(R,C,q,Color,Id,SP)), => TODO: fail this
 
+    address(Address),
     get_ady_taken(R, C, Address, Adj),
 
     valid_aa_move_aux(board(R, C, aa, Color, Id, StackPosition), Adj , ValidPos).
@@ -221,16 +220,11 @@ valid_aa_move(board(R, C, aa, Color, Id, StackPosition), ValidPos) :-
 valid_aa_move_aux(board(R, C, aa, Color, Id, StackPosition), [HAdj | TAdj], ValidPos) :-
     board(R, C, aa, Color, Id, StackPosition),
 
-    address(Address),
-    % get_ady_taken(R, C, Address, Adj),
-    % member(ActualId, Adj),
     board(TR, TC, TType, TColor, HAdj, TStackPosition),
 
     DirectionRow is TR - R,
     DirectionCol is TC - C,
-    % NewRow is TR + DirectionRow,
-    % NewCol is TC + DirectionCol,
-    
+  
     format("Check from <~w ~w> with direction <~w ~w> \n", [TR, TC, DirectionRow, DirectionCol]),
 
     walk_for_direction(TR, TC, aa, DirectionRow, DirectionCol, AuxValidPos1),
@@ -245,9 +239,8 @@ valid_aa_move_aux(board(_, _, aa, _, _, _), [], []).
     % append(H, )
     % valid_aa_move_aux(board())
 
-    % append([NewRow, NewCol], AuxValidPos, ValidPos).
 
-% valid_aa_move_aux(board(R, C, aa, _, _, _), []).
+valid_aa_move_aux(board(_, _, aa, _, _, _), [], []).
 
 walk_for_direction(R, C, Type, DirectionRow, DirectionCol, ValidPos) :-
     board(R, C, _, _, _, _),
@@ -256,7 +249,7 @@ walk_for_direction(R, C, Type, DirectionRow, DirectionCol, ValidPos) :-
     NewCol is DirectionCol + C,
     walk_for_direction(NewRow, NewCol, Type, DirectionRow, DirectionCol, ValidPosAux),
 
-    append([NewRow, NewCol], ValidPosAux, ValidPos).
+    append([[NewRow, NewCol]], ValidPosAux, ValidPos).
 
 walk_for_direction(_, _, _, _, _, []).
 
