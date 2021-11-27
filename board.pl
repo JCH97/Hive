@@ -17,7 +17,7 @@
 % board(4, 2, b2, w, 3,0).
 % board(3, 4, s2, w, 4,0).
 
-last_used_id(6). % marca la cantidad de piezas que hay en el tablero y ademas sirve para ponerle el id a las piezas nuevas.
+last_used_id(5). % marca la cantidad de piezas que hay en el tablero y ademas sirve para ponerle el id a las piezas nuevas.
 
 count(0). % variable auxiliar que se usa en el metodo is_valid_board
 
@@ -87,7 +87,7 @@ is_in_visited(Id, Visited, R) :-
 
 is_in_visited(Id, _, R) :-
     assert(visited(Id)),
-    R is 1.
+    how_many_in_place(Id, R).
 
 fix_count(Sum) :-
     count(C),
@@ -100,3 +100,11 @@ clear() :-
     retractall(visited(_)),
     retractall(count(_)),
     assert(count(0)).
+
+how_many_in_place(Id, R) :-
+    board(Row, Col, _, _, Id, _),
+    how_many_in_place_count(Row, Col, R).
+
+how_many_in_place_count(Row, Col, Count) :-
+    findall(Id, board(Row, Col, _, _, Id, _), R),
+    length(R, Count).
