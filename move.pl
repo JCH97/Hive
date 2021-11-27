@@ -121,8 +121,7 @@ valid_queen_moves_aux(R,C,[R_Dir1,C_Dir1, R_Dir2, C_Dir2 | Addr], Moves):-
     R1_aux is R+R_Dir1,C1_aux is C+C_Dir1,
     R2_aux is R+R_Dir2,C2_aux is C+C_Dir2,
     not(board(R1_aux,C1_aux,_,_,_,_)),not(board(R2_aux,C2_aux,_,_,_,_)),
-    Validated = [[R1_aux,C1_aux],[R2_aux,C2_aux]],
-    !,
+    Validated = [[R1_aux,C1_aux],[R2_aux,C2_aux]],    
     valid_queen_moves_aux(R,C,[R_Dir2,C_Dir2|Addr],MovesAux),
     append(Validated,MovesAux,Moves),
     print('Moves: ' ),
@@ -147,9 +146,12 @@ move_queen(board(R,C,q,Color,Id, StackPosition),R_new,C_new):-
     member(X,Moves),
 
     retract(board(R,C,q,Color,Id, StackPosition)),
-    assert(board(R_new,C_new,q,Color,Id, 0)).
+    assert(board(R_new,C_new,q,Color,Id, 0)),
+    is_valid_board(Id).
 
-move_queen(board(R,C,q,Color,Id, StackPosition),C_new,R_new):-
+move_queen(board(R,C,q,Color,Id, StackPosition),R_new,C_new):-
+    retract(board(R_new,C_new,q,Color,Id, 0)),
+    assert(board(R,C,q,Color,Id, StackPosition)),
     format('Invalid move'),
     !.
 
