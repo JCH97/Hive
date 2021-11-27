@@ -104,7 +104,7 @@ valid_moves(board(R,C,q,Color,Id, StackPosition),Moves):-
     list_to_set(MovesList,Moves),!.
 
 move(board(R,C,q,Color,Id, StackPosition), R_new,C_new):-
-    move_queen(board(R,C,q,Color,Id, StackPosition),R_new,C_new).
+    move_queen(board(R,C,q,Color,Id, StackPosition),R_new,C_new),!.
 % ----------------Queen Move-------------------------------------
 
 valid_queen_moves(board(R,C,q,Color,Id,SP),MovesList):-
