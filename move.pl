@@ -38,13 +38,6 @@ any([X|Y], C) :-
     !;
     any(Y,C).
 
-get_location_by_id([Id|T], Locations):-
-    board(R,C,_,_,Id,_),
-    get_location_by_id(T, LocAux),
-    append([[R,C]],LocAux,Locations).
-
-get_location_by_id([],[]).
-
 insect_above_me(board(R,C,_,_,_,SP)):-
     board(R,C,_,_,_,SP1),
     SP1 > SP.
@@ -93,24 +86,6 @@ adj_path_out(R,C,[R_Dir1,C_Dir1],Moves):-
     Moves = [[R1_aux,C1_aux],[R2_aux,C2_aux]].
 
 adj_path_out(R,C,[R_Dir1,C_Dir1],[]).
-
-% Queen Bee
-% move_queen_bee(OldRow, OldColumn, Type, Adj) :-
-%     board(OldRow, OldColumn, Type, Color, Id),
-%     retract(board(OldRow, OldColumn, Type, Color, Id)),
-%     last_used_id(Temp),
-%     New is Temp - 1,
-%     retract(last_used_id(_)),
-%     assert(last_used_id(New)),
-%     is_valid_board(New),
-%     address(Address),
-%     get_ady_free(OldRow, OldColumn, Address, Adj),
-%     !.
-
-% move_queen_bee(_, _, _, _) :-
-%     format('Invalid move'),
-%     !.
-
 
 valid_moves(board(R,C,q,Color,Id, StackPosition),Moves):-
     valid_queen_moves(board(R,C,q,Color,Id,StackPosition),MovesList),
@@ -164,8 +139,6 @@ move_queen(board(R,C,q,Color,Id, StackPosition),R_new,C_new):-
     assert(board(R,C,q,Color,Id, 0)),
     !,fail.
 
-%--------------------------------------------------------------------
-
 % ----------------------- Grasshopper Move ---------------------------------
 
 valid_aa_move(board(R, C, aa, Color, Id, StackPosition), ValidPos) :-
@@ -174,8 +147,9 @@ valid_aa_move(board(R, C, aa, Color, Id, StackPosition), ValidPos) :-
     not(insect_above_me(board(R, C, aa, Color, Id, StackPosition))),
     format("no insect above me. \n"),
 
-    % will_insect_not_break_hive(board(R,C,q,Color,Id,SP)), => fail here
+    % will_insect_not_break_hive(board(R,C,q,Color,Id,SP)), => TODO: fail this
 
+    address(Address),
     get_ady_taken(R, C, Address, Adj),
 
     valid_aa_move_aux(board(R, C, aa, Color, Id, StackPosition), Adj , ValidPos).
@@ -184,33 +158,24 @@ valid_aa_move(board(R, C, aa, Color, Id, StackPosition), ValidPos) :-
 valid_aa_move_aux(board(R, C, aa, Color, Id, StackPosition), [HAdj | TAdj], ValidPos) :-
     board(R, C, aa, Color, Id, StackPosition),
 
-    address(Address),
-    % get_ady_taken(R, C, Address, Adj),
-    % member(ActualId, Adj),
     board(TR, TC, TType, TColor, HAdj, TStackPosition),
 
     DirectionRow is TR - R,
     DirectionCol is TC - C,
-    % NewRow is TR + DirectionRow,
-    % NewCol is TC + DirectionCol,
-    
+  
     format("Check from <~w ~w> with direction <~w ~w> \n", [TR, TC, DirectionRow, DirectionCol]),
 
     walk_for_direction(TR, TC, aa, DirectionRow, DirectionCol, AuxValidPos1),
 
-    print(AuxValidPos).
+    print(AuxValidPos1),
 
-    valid_aa_move_aux(board(R, C, aa, Color, Id, StackPosition), [HAdj | TAdj], AuxValidPos2),
+    valid_aa_move_aux(board(R, C, aa, Color, Id, StackPosition), TAdj, AuxValidPos2),
 
-    append(AuxValidPos1, AuxValidPos2, ValidPos).
-    
+append(AuxValidPos1, AuxValidPos2, ValidPos),
+    !.
 
-    % append(H, )
-    % valid_aa_move_aux(board())
 
-    % append([NewRow, NewCol], AuxValidPos, ValidPos).
-
-% valid_aa_move_aux(board(R, C, aa, _, _, _), []).
+valid_aa_move_aux(board(_, _, aa, _, _, _), [], []).
 
 walk_for_direction(R, C, Type, DirectionRow, DirectionCol, ValidPos) :-
     board(R, C, _, _, _, _),
@@ -219,7 +184,7 @@ walk_for_direction(R, C, Type, DirectionRow, DirectionCol, ValidPos) :-
     NewCol is DirectionCol + C,
     walk_for_direction(NewRow, NewCol, Type, DirectionRow, DirectionCol, ValidPosAux),
 
-    append([NewRow, NewCol], ValidPosAux, ValidPos).
+    append([[NewRow, NewCol]], ValidPosAux, ValidPos).
 
 walk_for_direction(_, _, _, _, _, []).
 
@@ -258,10 +223,10 @@ move_beetle(board(R,C,b,Color,Id, StackPosition),R_new,C_new):-
     
 %--------------------------------------------------------------------
 
+
 get_location_by_id([Id|T], Locations):-
     board(R,C,_,_,Id,_),
     get_location_by_id(T, LocAux),
     append([[R,C]],LocAux,Locations).
 
 get_location_by_id([],[]).
-
