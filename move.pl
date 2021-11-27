@@ -19,15 +19,15 @@
 % board(2, 4, b2, w, 3,1).
 % board(3, 4, s2, w, 4,0).
 
-board(1, 1, q, b, 1,0).
+board(0, 0, q, b, 1,0).
 % board(1, 1, q1, b, 1,1).
 
-board(0, 1, q1, b, 2,0).
-board(1, 2, q1, b, 3,0).
-board(2, 2, q1, b, 4,0).
-board(2, 1, q1, b, 5,0).
-% board(2, 0, q1, b, 6,0).
-% board(1, 0, q1, b, 7,0).
+board(1, -1, q1, b, 2,0).
+board(2, 0, q1, b, 3,0).
+board(1, 1, q1, b, 4,0).
+board(-1, 1, q1, b, 5,0).
+% board(-2, 0, q1, b, 6,0).
+% board(-1, -1, q1, b, 7,0).
 
 
 
@@ -56,6 +56,29 @@ will_insect_not_break_hive(board(R,C,Type,Color,Id,SP)):-
     retract(last_used_id(_)),
     assert(last_used_id(Count)).
 
+adj_path_out(R,C,[R_Dir1,C_Dir1, R_Dir2, C_Dir2 | Addr], Moves):-
+    R1_aux is R+R_Dir1,C1_aux is C+C_Dir1,
+    R2_aux is R+R_Dir2,C2_aux is C+C_Dir2,
+    print('hi'),
+    not(board(R1_aux,C1_aux,_,_,_,_)),not(board(R2_aux,C2_aux,_,_,_,_)),
+    Validated = [[R1_aux,C1_aux],[R2_aux,C2_aux]],
+    !,
+    adj_path_out(R,C,[R_Dir2,C_Dir2|Addr],MovesAux),
+    append(Validated,MovesAux,Moves),
+    print('Moves: ' ),
+    print(MovesAux).
+
+adj_path_out(R,C,[R_Dir1,C_Dir1, R_Dir2, C_Dir2 | Addr], Moves):-
+    adj_path_out(R,C,[R_Dir2,C_Dir2|Addr],Moves).
+
+adj_path_out(R,C,[R_Dir1,C_Dir1],Moves):-
+    R1_aux is R+R_Dir1,C1_aux is C+C_Dir1,
+    close_cycle_addr([R_Dir2,C_Dir2]),
+    R2_aux is R+R_Dir2,C2_aux is C+C_Dir2,
+    not(board(R1_aux,C1_aux,_,_,_,_)),not(board(R2_aux,C2_aux,_,_,_,_)),
+    Moves = [[R1_aux,C1_aux],[R2_aux,C2_aux]].
+
+adj_path_out(R,C,[R_Dir1,C_Dir1],[]).
 
 % Queen Bee
 % move_queen_bee(OldRow, OldColumn, Type, Adj) :-
@@ -80,36 +103,40 @@ valid_moves(board(R,C,q,Color,Id, StackPosition),Moves):-
     print(MovesList),    
     list_to_set(MovesList,Moves).
 
-move(board(R,C,q,Color,Id, StackPosition), C,R):-
-    move_queen(board(R,C,q,Color,Id, StackPosition),C,R).
+move(board(R,C,q,Color,Id, StackPosition), R,C):-
+    move_queen(board(R,C,q,Color,Id, StackPosition),R,C).
 % ----------------Queen Move-------------------------------------
 
 valid_queen_moves(board(R,C,q,Color,Id,SP),MovesList):-
     not(insect_above_me(board(R,C,q,Color,Id,SP))),
-    print('no insect above me.'),
+    print('no insect above me. \n'),
     will_insect_not_break_hive(board(R,C,q,Color,Id,SP)),
-    print('will_insect_not_break_hive'),
-    address1(Addr),
-    valid_queen_moves_aux(R,C,Addr,MovesList).   
+    print('will_insect_not_break_hive \n'),
+    address(Addr),
+    adj_path_out(R,C,Addr,MovesList).   
 
-valid_queen_moves(board(R,C,q,Color,Id,SP),[]).
+
 
 valid_queen_moves_aux(R,C,[R_Dir1,C_Dir1, R_Dir2, C_Dir2 | Addr], Moves):-
     R1_aux is R+R_Dir1,C1_aux is C+C_Dir1,
     R2_aux is R+R_Dir2,C2_aux is C+C_Dir2,
     not(board(R1_aux,C1_aux,_,_,_,_)),not(board(R2_aux,C2_aux,_,_,_,_)),
-
     Validated = [[R1_aux,C1_aux],[R2_aux,C2_aux]],
     !,
     valid_queen_moves_aux(R,C,[R_Dir2,C_Dir2|Addr],MovesAux),
     append(Validated,MovesAux,Moves),
-    print('Moves:' ),
+    print('Moves: ' ),
     print(MovesAux).
 
 valid_queen_moves_aux(R,C,[R_Dir1,C_Dir1, R_Dir2, C_Dir2 | Addr], Moves):-
     valid_queen_moves_aux(R,C,[R_Dir2,C_Dir2|Addr],Moves).
-    
-valid_queen_moves_aux(R,C,Addr,[]).
+
+valid_queen_moves_aux(R,C,[R_Dir1,C_Dir1],Moves):-
+    R1_aux is R+R_Dir1,C1_aux is C+C_Dir1,
+    close_cycle_addr([R2_Dir2,C2_Dir2]),
+    R2_aux is R+R_Dir2,C2_aux is C+C_Dir2,
+    not(board(R1_aux,C1_aux,_,_,_,_)),not(board(R2_aux,C2_aux,_,_,_,_)),
+    Moves = [[R1_aux,C1_aux],[R2_aux,C2_aux]].
     
 move_queen(board(R,C,q,Color,Id, StackPosition),R_new,C_new):-
     board(R,C,q,Color,Id, StackPosition),
