@@ -103,8 +103,8 @@ valid_moves(board(R,C,q,Color,Id, StackPosition),Moves):-
     print(MovesList),    
     list_to_set(MovesList,Moves).
 
-move(board(R,C,q,Color,Id, StackPosition), R,C):-
-    move_queen(board(R,C,q,Color,Id, StackPosition),R,C).
+move(board(R,C,q,Color,Id, StackPosition), R_new,C_new):-
+    move_queen(board(R,C,q,Color,Id, StackPosition),R_new,C_new).
 % ----------------Queen Move-------------------------------------
 
 valid_queen_moves(board(R,C,q,Color,Id,SP),MovesList):-
@@ -140,12 +140,12 @@ valid_queen_moves_aux(R,C,[R_Dir1,C_Dir1],Moves):-
     
 move_queen(board(R,C,q,Color,Id, StackPosition),R_new,C_new):-
     board(R,C,q,Color,Id, StackPosition),
-    % print(board(C,R,q,Color,Id, StackPosition)),
+
     valid_moves(board(R,C,q,Color,Id, StackPosition), Moves),
     X = [R_new,C_new],
     print(Moves),
-    % member(X,Moves),
-    Z = 'yatusae',
+    member(X,Moves),
+
     retract(board(R,C,q,Color,Id, StackPosition)),
     assert(board(R_new,C_new,q,Color,Id, 0)).
 
