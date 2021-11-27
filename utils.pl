@@ -22,3 +22,6 @@ address1([-1,0,  /*up*/
     0,-1  /*up*/
     ]).
 % address([1, -1]).
+
+add_tail([], X, [X]).
+add_tail([H | T], X, [H | L]) :- add_tail(T, X, L).

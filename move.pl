@@ -19,7 +19,7 @@
 % board(2, 4, b2, w, 3,1).
 % board(3, 4, s2, w, 4,0).
 
-board(0, 0, q, b, 1,0).
+board(0, 0, aa, b, 1,0).
 % board(1, 1, q1, b, 1,1).
 
 board(1, -1, q1, b, 2,0).
@@ -104,7 +104,13 @@ valid_moves(board(R,C,q,Color,Id, StackPosition),Moves):-
     list_to_set(MovesList,Moves),!.
 
 move(board(R,C,q,Color,Id, StackPosition), R_new,C_new):-
-    move_queen(board(R,C,q,Color,Id, StackPosition),R_new,C_new),!.
+    move_queen(board(R,C,q,Color,Id, StackPosition),R_new,C_new),
+    !.
+
+move(board(R, C, aa, Color, Id, StackPosition), R_new, C_new):-
+    move_queen(board(R, C, q, Color, Id, StackPosition), R_new, C_new),
+    !.
+
 % ----------------Queen Move-------------------------------------
 
 valid_queen_moves(board(R,C,q,Color,Id,SP),MovesList):-
@@ -136,9 +142,57 @@ move_queen(board(R,C,q,Color,Id, StackPosition),R_new,C_new):-
     !,fail.
 
 
+% ----------------------- Grasshopper Move ---------------------------------
+
+valid_aa_move(board(R, C, aa, Color, Id, StackPosition), ValidPos) :-
+    board(R, C, aa, Color, Id, StackPosition),
+
+    not(insect_above_me(board(R, C, aa, Color, Id, StackPosition))),
+    format("no insect above me. \n"),
+
+    % will_insect_not_break_hive(board(R,C,q,Color,Id,SP)), => fail here
+
+    valid_aa_move_aux(board(R, C, aa, Color, Id, StackPosition), ValidPos).
 
 
+valid_aa_move_aux(board(R, C, aa, Color, Id, StackPosition), ValidPos) :-
+    board(R, C, aa, Color, Id, StackPosition),
+
+    address(Address),
+    get_ady_taken(R, C, Address, Adj),
+    member(ActualId, Adj),
+    board(TR, TC, TType, TColor, ActualId, TStackPosition),
+
+    DirectionRow is TR - R,
+    DirectionCol is TC - C,
+    % NewRow is TR + DirectionRow,
+    % NewCol is TC + DirectionCol,
+    
+    format("Check from <~w ~w> with direction <~w ~w> \n", [TR, TC, DirectionRow, DirectionCol]),
+
+    walk_for_direction(TR, TC, aa, DirectionRow, DirectionCol, ValidPos),
+
+    print(ValidPos),
+    !.
+
+    % append(H, )
+    % valid_aa_move_aux(board())
 
 
+    
 
+    % append([NewRow, NewCol], AuxValidPos, ValidPos).
 
+% valid_aa_move_aux(board(R, C, aa, _, _, _), []).
+
+walk_for_direction(R, C, Type, DirectionRow, DirectionCol, ValidPos) :-
+    board(R, C, _, _, _, _),
+
+    NewRow is DirectionRow + R,
+    NewCol is DirectionCol + C,
+
+    walk_for_direction(NewRow, NewCol, Type, DirectionRow, DirectionCol, ValidPosAux),
+
+    append([NewRow, NewCol], ValidPosAux, ValidPos).
+
+walk_for_direction(_, _, _, _, _, []).
