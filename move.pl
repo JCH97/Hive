@@ -176,16 +176,18 @@ valid_aa_move(board(R, C, aa, Color, Id, StackPosition), ValidPos) :-
 
     % will_insect_not_break_hive(board(R,C,q,Color,Id,SP)), => fail here
 
-    valid_aa_move_aux(board(R, C, aa, Color, Id, StackPosition), ValidPos).
+    get_ady_taken(R, C, Address, Adj),
+
+    valid_aa_move_aux(board(R, C, aa, Color, Id, StackPosition), Adj , ValidPos).
 
 
-valid_aa_move_aux(board(R, C, aa, Color, Id, StackPosition), ValidPos) :-
+valid_aa_move_aux(board(R, C, aa, Color, Id, StackPosition), [HAdj | TAdj], ValidPos) :-
     board(R, C, aa, Color, Id, StackPosition),
 
     address(Address),
-    get_ady_taken(R, C, Address, Adj),
-    member(ActualId, Adj),
-    board(TR, TC, TType, TColor, ActualId, TStackPosition),
+    % get_ady_taken(R, C, Address, Adj),
+    % member(ActualId, Adj),
+    board(TR, TC, TType, TColor, HAdj, TStackPosition),
 
     DirectionRow is TR - R,
     DirectionCol is TC - C,
@@ -194,16 +196,17 @@ valid_aa_move_aux(board(R, C, aa, Color, Id, StackPosition), ValidPos) :-
     
     format("Check from <~w ~w> with direction <~w ~w> \n", [TR, TC, DirectionRow, DirectionCol]),
 
-    walk_for_direction(TR, TC, aa, DirectionRow, DirectionCol, ValidPos),
+    walk_for_direction(TR, TC, aa, DirectionRow, DirectionCol, AuxValidPos1),
 
-    print(ValidPos),
-    !.
+    print(AuxValidPos).
+
+    valid_aa_move_aux(board(R, C, aa, Color, Id, StackPosition), [HAdj | TAdj], AuxValidPos2),
+
+    append(AuxValidPos1, AuxValidPos2, ValidPos).
+    
 
     % append(H, )
     % valid_aa_move_aux(board())
-
-
-    
 
     % append([NewRow, NewCol], AuxValidPos, ValidPos).
 
