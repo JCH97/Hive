@@ -287,4 +287,34 @@ move_beetle(board(R,C,b,Color,Id, StackPosition),R_new,C_new):-
     
 %--------------------------------------------------------------------
 
+%-----------------Ant move----------------------------------------
+valid_ant_moves(board(R,C,a,Color,Id,SP),MovesList):-
+    board(R,C,b,Color,Id,SP),
+    not(insect_above_me(board(R,C,a,Color,Id,SP))),
+    print('no insect above me. \n'),
+    will_insect_not_break_hive(board(R,C,b,Color,Id,SP)),
+    print('will_insect_not_break_hive \n'),
+    address(Addr),
+    adj_path_out(R,C,Addr,Adjs),
+    get_adj_valid(board(R,C,a,Color,Id,SP),Adjs, AdjMoves),
 
+    not(AdjMoves is []),
+
+    let_adj_do_their_thing(AdjMoves,[],Visited, Moves).
+
+let_adj_do_their_thing([H |Adj],AuxVisited,Visited,Moves):-
+    expand_adj(H,AuxVisited,Visited1,Moves1),
+    let_adj_do_their_thing(Adj,Visited1,Visited2,Moves2),
+    append(Moves1,Moves2,Moves).
+
+expand_adj([R,C],AuxVisited,Visited,Moves):-
+    address(Addr),
+    adj_path_out(R,C, Addr, Aux),
+    get_adj_valid(board(R,C,_,_,_,_),Aux, Moves1),
+
+    get_ady_taken(R, C, Addr, Taken),
+    get_location_by_id(Taken, Locations).
+
+    
+
+    % adj_path_out(R,C,[R_Dir1,C_Dir1, R_Dir2, C_Dir2 | Addr], Moves):-
