@@ -19,13 +19,16 @@
 % board(2, 4, b2, w, 3,1).
 % board(3, 4, s2, w, 4,0).
 
-board(0, 0, b, b, 1,0).
+% board(0, 0, aa, b, 1,0).
 % board(1, 1, q1, b, 1,1).
 
-board(1, -1, b, b, 2,0).
-board(2, 0, b, b, 3,0).
-board(1, 1, b, b, 4,0).
-board(-1, 1, b, b, 5,0).
+board(2, -2, a, b, 1, 0).
+board(1, -1, q, b, 2, 0).
+board(2, 0, b, b, 3, 0).
+board(1, 1, q, b, 4, 0).
+board(-1, 1, q, b, 5, 0).
+board(-2, 0, aa, b, 6, 0).
+board(-1, -1, aa, n, 7, 0).
 % board(-2, 0, q1, b, 4,0).
 % board(-1, -1, q1, b, 7,0).
 
@@ -168,9 +171,10 @@ move(board(R, C, aa, Color, Id, StackPosition), R_new, C_new):-
     move_queen(board(R, C, aa, Color, Id, StackPosition), R_new, C_new),
     !.
 
-
 move(board(R,C,b,Color,Id, StackPosition), R_new,C_new):-
     move_beetle(board(R,C,b,Color,Id, StackPosition),R_new,C_new),!.
+
+
 % ----------------Queen Move-------------------------------------
 
 valid_queen_moves(board(R,C,q,Color,Id,SP),MovesList):-
@@ -297,7 +301,6 @@ valid_ant_moves(board(R,C,a,Color,Id,SP),MovesList):-
     address(Addr),
     adj_path_out(R,C,Addr,Adjs),
     get_adj_valid(board(R,C,a,Color,Id,SP),Adjs, AdjMoves),
-
     not(AdjMoves is []),
 
     let_adj_do_their_thing(AdjMoves,[],Visited, Moves).
@@ -318,3 +321,48 @@ expand_adj([R,C],AuxVisited,Visited,Moves):-
     
 
     % adj_path_out(R,C,[R_Dir1,C_Dir1, R_Dir2, C_Dir2 | Addr], Moves):-
+%--------------------- Ant Move -------------------------------------
+
+valids_a_move(board(R, C, a, Color, Id, StackPosition), ValidPos) :- 
+    board(R, C, a, Color, Id, StackPosition),
+
+    not(insect_above_me(board(R, C, aa, Color, Id, StackPosition))),
+    format("no insect above me. \n"),
+
+    % will_insect_not_break_hive(board(R, C, a, Color, Id, StackPosition)),
+    % print('will_insect_not_break_hive \n'),
+
+    address(Addr),
+    adj_path_out(R, C, Addr, MovesListOut), 
+    length(MovesListOut, Len),
+    Len > 0,
+
+    retract(board(_, _, a, _, Id, _)),
+    valids_a_move_aux(R, C, ValidPos),
+    !.
+
+valids_a_move_aux(R, C , ValidPos) :-
+    % print(HR),
+    % print(HC),
+    format("Check now position <~w ~w>", [R, C]),
+    address(Addr),
+    get_ady_free(R, C, Addr, FreeAdj),
+    get_adj_valids_for_ant_aux(FreeAdj, ValidPos).
+
+get_adj_valids_for_ant_aux([[R | [C | _]] | TF], Ans) :-
+    address(Addr),
+    % board(R, C, _, _, HF, _),
+    format("get_adj_valids_for_ant_aux for <~w ~w>", [R, C]),
+    get_ady_taken(R, C, Addr, AdjTaken),
+    length(AdjTaken, L),
+    L > 0,
+
+    % valids_a_move_aux(R, C, ),
+    
+    get_adj_valids_for_ant_aux(TF, AnsAux),
+    append([[R, C]], AnsAux, Ans).
+
+
+
+
+
