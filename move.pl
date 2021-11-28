@@ -307,6 +307,8 @@ valid_ant_moves(board(R,C,a,Color,Id,SP),MovesList):-
     let_adj_do_their_thing(AdjMoves,[[R,C]],Visited, MovesList),
     assert(board(R,C,a,Color,Id,SP)).
 
+valid_ant_moves(board(R,C,a,Color,Id,SP),[]).
+
 let_adj_do_their_thing([[R,C] |Adj],AuxVisited,Visited,Moves):-
     not(member([R,C],AuxVisited)),    
     address(Addr),
@@ -339,6 +341,23 @@ adj_connected_to_board([[R,C]| AdjT], AdjValid):-
 adj_connected_to_board([], []).
 
 
+%---------------------------------------------------------------------
+%-----------------------------Spider Move--------------------------
+valid_ant_moves(board(R,C,s,Color,Id,SP),MovesList):-
+    board(R,C,s,Color,Id,SP),
+    not(insect_above_me(board(R,C,s,Color,Id,SP))),
+    print('no insect above me. \n'),
+    will_insect_not_break_hive(board(R,C,s,Color,Id,SP)),
+    print('will_insect_not_break_hive \n'),
+    address(Addr),
+    adj_path_out(R,C,Addr,Adjs),
+    get_adj_valid(board(R,C,a,Color,Id,SP),Adjs, AdjMoves),
+    not(AdjMoves is []),
+
+    retract(board(R,C,a,Color,Id,SP)),
+    let_adj_do_their_thing_spider(AdjMoves,[[R,C]], MovesList, 1),
+    assert(board(R,C,a,Color,Id,SP)).
+%------------------------------------------------------------------
 
     
 
