@@ -293,30 +293,52 @@ move_beetle(board(R,C,b,Color,Id, StackPosition),R_new,C_new):-
 
 %-----------------Ant move----------------------------------------
 valid_ant_moves(board(R,C,a,Color,Id,SP),MovesList):-
-    board(R,C,b,Color,Id,SP),
+    board(R,C,a,Color,Id,SP),
     not(insect_above_me(board(R,C,a,Color,Id,SP))),
     print('no insect above me. \n'),
-    will_insect_not_break_hive(board(R,C,b,Color,Id,SP)),
+    will_insect_not_break_hive(board(R,C,a,Color,Id,SP)),
     print('will_insect_not_break_hive \n'),
     address(Addr),
     adj_path_out(R,C,Addr,Adjs),
     get_adj_valid(board(R,C,a,Color,Id,SP),Adjs, AdjMoves),
     not(AdjMoves is []),
 
-    let_adj_do_their_thing(AdjMoves,[],Visited, Moves).
+    retract(board(R,C,a,Color,Id,SP)),
+    let_adj_do_their_thing(AdjMoves,[[R,C]],Visited, MovesList),
+    assert(board(R,C,a,Color,Id,SP)).
 
-let_adj_do_their_thing([H |Adj],AuxVisited,Visited,Moves):-
-    expand_adj(H,AuxVisited,Visited1,Moves1),
-    let_adj_do_their_thing(Adj,Visited1,Visited2,Moves2),
+let_adj_do_their_thing([[R,C] |Adj],AuxVisited,Visited,Moves):-
+    not(member([R,C],AuxVisited)),    
+    address(Addr),
+    adj_path_out(R,C,Addr,Adj1),
+    adj_connected_to_board(Adj1,AdjValid),
+    append([[R,C]],AuxVisited, AuxVisited1),
+    let_adj_do_their_thing(AdjValid,AuxVisited1, Visited1, Moves1),
+    let_adj_do_their_thing(Adj,Visited1,Visited,Moves2),
     append(Moves1,Moves2,Moves).
 
-expand_adj([R,C],AuxVisited,Visited,Moves):-
-    address(Addr),
-    adj_path_out(R,C, Addr, Aux),
-    get_adj_valid(board(R,C,_,_,_,_),Aux, Moves1),
 
-    get_ady_taken(R, C, Addr, Taken),
-    get_location_by_id(Taken, Locations).
+
+let_adj_do_their_thing([[R,C] |Adj],AuxVisited,Visited,Moves):-
+    let_adj_do_their_thing(Adj,AuxVisited,Visited,Moves).
+
+let_adj_do_their_thing([],AuxVisited,Visited,[]):-
+    Visited is AuxVisited.
+
+
+adj_connected_to_board([[R,C]| AdjT], AdjValid):-
+    address(Addr),
+    get_ady_taken(R, C, Addr, AdjTaken),
+    not(AdjTaken is []),
+    adj_connected_to_board(AdjT,AdjValid1),
+    append([[R,C]],AdjValid1,AdjValid).
+
+adj_connected_to_board([[R,C]| AdjT], AdjValid):-
+    adj_connected_to_board(AdjT,AdjValid).   
+
+adj_connected_to_board([], []).
+
+
 
     
 
