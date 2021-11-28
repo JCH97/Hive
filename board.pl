@@ -17,13 +17,18 @@
 % board(4, 2, b2, w, 3,0).
 % board(3, 4, s2, w, 4,0).
 
-last_used_id(5). % marca la cantidad de piezas que hay en el tablero y ademas sirve para ponerle el id a las piezas nuevas.
+last_used_id(7). % marca la cantidad de piezas que hay en el tablero y ademas sirve para ponerle el id a las piezas nuevas.
 
 count(0). % variable auxiliar que se usa en el metodo is_valid_board
 
+test_get_taken(R, C, Ans) :-
+    address(Addr),
+    get_ady_taken(R, C, Addr, Ans),
+    !.
+
 
 % get adjacents to (R, C); but valid adjacents with card into. Return [ID] of adjacents.
-get_ady_taken(_, _, [], []) :- !.
+get_ady_taken(_, _, [], []) :- !. % params: row, column, address_direction, ans
 
 get_ady_taken(OldRow, OldColumn, [R, C | T], [Id | T1]) :-
     NewRow is OldRow + R,
@@ -32,17 +37,19 @@ get_ady_taken(OldRow, OldColumn, [R, C | T], [Id | T1]) :-
     get_ady_taken(OldRow, OldColumn, T, T1),
     !.
 
-get_ady_taken(OldRow, OldColumn, [_, _ | T], T1) :-
-    get_ady_taken(OldRow, OldColumn, T, T1).
+test_get_free(R, C, Ans) :- 
+    address(Addr),
+    get_ady_free(R, C, Addr, Ans),
+    !.
 
+get_ady_free(_, _, [], []) :- !. % params: row, column, address_direction, ans => return [[R1, C1], [R2, C2], ...]
 
-get_ady_free(_, _, [], []) :- !.
-
-get_ady_free(OldRow, OldColumn, [R, C | T], [Id | T1]) :-
+get_ady_free(OldRow, OldColumn, [R, C | T], Ans) :-
     NewRow is OldRow + R,
     NewCol is OldColumn + C,
     not(board(NewRow, NewCol, _, _, Id,_)),
-    get_ady_free(OldRow, OldColumn, T, T1),
+    get_ady_free(OldRow, OldColumn, T, AnsAux),
+    append([[NewRow, NewCol]], AnsAux, Ans),
     !.
 
 get_ady_free(OldRow, OldColumn, [_, _ | T], T1) :-
