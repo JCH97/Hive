@@ -3,7 +3,7 @@
     './board.pl'
 ].
 
-:- dynamic [board/6].
+:- dynamic [board/6, plays/1, turn/1].
 
 %% hormigas => a         arannas => s
 %% saltamontes => aa     abeja reina => q
@@ -32,6 +32,29 @@ board(-1, -1, aa, n, 7, 0).
 % board(-2, 0, q1, b, 4,0).
 % board(-1, -1, q1, b, 7,0).
 
+plays(0).
+
+% place_piece:
+place_piece(Color, Ans) :- 
+    findall([R, C], board(R, C, _, Color, _, _), SameColor),
+    place_piece_aux(SameColor, Ans),
+    !.
+
+place_piece_aux([[HR, HC] | T], Ans) :-
+    address(Addr),
+    adj_path_out(HR, HC, Addr, Ans).
+
+new_play() :- 
+    plays(R),
+    TR is R + 1,
+    retract(plays(_)),
+    assert(plays(TR)).
+
+get_turn(T) :- 
+    plays(R),
+    C is R div 2,
+    Remain is R mod 2,
+    T is C + Remain.
 
 
 any([X|Y], C) :- 
@@ -343,7 +366,7 @@ adj_connected_to_board([], []).
 
 %---------------------------------------------------------------------
 %-----------------------------Spider Move--------------------------
-valid_ant_moves(board(R,C,s,Color,Id,SP),MovesList):-
+valid_spider_moves(board(R,C,s,Color,Id,SP),MovesList):-
     board(R,C,s,Color,Id,SP),
     not(insect_above_me(board(R,C,s,Color,Id,SP))),
     print('no insect above me. \n'),
@@ -355,7 +378,7 @@ valid_ant_moves(board(R,C,s,Color,Id,SP),MovesList):-
     not(AdjMoves is []),
 
     retract(board(R,C,a,Color,Id,SP)),
-    let_adj_do_their_thing_spider(AdjMoves,[[R,C]], MovesList, 1),
+    % let_adj_do_their_thing_spider(AdjMoves,[[R,C]], MovesList, 1),
     assert(board(R,C,a,Color,Id,SP)).
 %------------------------------------------------------------------
 
