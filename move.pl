@@ -3,7 +3,7 @@
     './board.pl'
 ].
 
-:- dynamic [board/6].
+:- dynamic [board/6, plays/1, turn/1].
 
 %% hormigas => a         arannas => s
 %% saltamontes => aa     abeja reina => q
@@ -52,6 +52,29 @@ board(-4, -2, a, b, 13, 0).
 
 
 %---------------------------
+plays(0).
+
+% place_piece:
+place_piece(Color, Ans) :- 
+    findall([R, C], board(R, C, _, Color, _, _), SameColor),
+    place_piece_aux(SameColor, Ans),
+    !.
+
+place_piece_aux([[HR, HC] | T], Ans) :-
+    address(Addr),
+    adj_path_out(HR, HC, Addr, Ans).
+
+new_play() :- 
+    plays(R),
+    TR is R + 1,
+    retract(plays(_)),
+    assert(plays(TR)).
+
+get_turn(T) :- 
+    plays(R),
+    C is R div 2,
+    Remain is R mod 2,
+    T is C + Remain.
 
 
 any([X|Y], C) :- 

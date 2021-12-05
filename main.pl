@@ -8,17 +8,18 @@
     '/workstate_prolog/Hive/move.pl'
 ].
 
-:- dynamic [board/5, last_used_id/1, visited/1, count/1].
+:- dynamic [board/6, last_used_id/1, visited/1, count/1].
 
-% get location by Type
-place_piece(R, C, Type, Color) :-
-    not(board(_, _, Type, Color, _)),
-    last_used_id(X),
-    Id is X + 1,
-    retract(last_used_id(X)),
-    assert(last_used_id(Id)),
-    assert(board(R, C, Type, Color, Id)),
-    !.
+
+% % get location by Type
+% place_piece(R, C, Type, Color) :-
+%     not(board(_, _, Type, Color, _, _)),
+%     last_used_id(X),
+%     Id is X + 1,
+%     retract(last_used_id(X)),
+%     assert(last_used_id(Id)),
+%     assert(board(R, C, Type, Color, Id)),
+%     !.
 
 % get_ady_taken2(R, C, Ans) :- 
 %     row_directions(Row),
