@@ -35,6 +35,25 @@ board(-1, -1, aa, n, 7, 0, 50, 50).
 % board(-2, 0, q1, b, 4,0).
 % board(-1, -1, q1, b, 7,0).
 
+%---------------------------
+board(-2, -2, s, b, 1, 0).
+board(0, -2, a, b, 2, 0).
+board(2, -2, a, b, 3, 0).
+board(3, -1, a, b, 4, 0).
+board(4, 0, a, b, 5, 0).
+board(3, 1, a, b, 6, 0).
+board(2, 2, a, b, 7, 0).
+board(0, 2, a, b, 8, 0).
+board(-2, 2, a, b, 9, 0).
+board(-3, 1, a, b, 10, 0).
+board(-4, 0, a, b, 11, 0).
+% board(-3, -1, a, b, 12, 0).
+board(-5, -1, a, b, 12, 0).
+board(-4, -2, a, b, 13, 0).
+
+
+
+%---------------------------
 plays(0).
 
 % place_piece:
@@ -317,6 +336,19 @@ valid_ant_moves(board(R,C,a,Color,Id,SP, _, _),MovesList):-
 
 valid_ant_moves(board(R,C,a,Color,Id,SP, _, _),[]).
 
+move_ant(board(R,C,a,Color,Id,SP),R_new,C_new):-
+    board(R,C,a,Color,Id,SP),
+    valid_moves(board(R,C,a,Color,Id,SP),Moves),
+    X = [R_new,C_new],
+    print(Moves),
+    member(X,Moves),
+    retract(board(R,C,a,Color,Id, StackPosition)),
+    assert(board(R_new,C_new,a,Color,Id, SP)),
+    !.
+move_ant(board(R,C,a,Color,Id,SP),R_new,C_new):-
+    format('Invalid move'),
+    !,fail.
+
 let_adj_do_their_thing([[R,C] |Adj],AuxVisited,Visited,Moves):-
     not(member([R,C],AuxVisited)),    
     address(Addr),
@@ -325,7 +357,8 @@ let_adj_do_their_thing([[R,C] |Adj],AuxVisited,Visited,Moves):-
     append([[R,C]],AuxVisited, AuxVisited1),
     let_adj_do_their_thing(AdjValid,AuxVisited1, Visited1, Moves1),
     let_adj_do_their_thing(Adj,Visited1,Visited,Moves2),
-    append(Moves1,Moves2,Moves).
+    append([[R,C]],Moves1,MovesAux),
+    append(MovesAux,Moves2,Moves).
 
 
 
@@ -333,13 +366,13 @@ let_adj_do_their_thing([[R,C] |Adj],AuxVisited,Visited,Moves):-
     let_adj_do_their_thing(Adj,AuxVisited,Visited,Moves).
 
 let_adj_do_their_thing([],AuxVisited,Visited,[]):-
-    Visited is AuxVisited.
+    Visited = AuxVisited.
 
 
 adj_connected_to_board([[R,C]| AdjT], AdjValid):-
     address(Addr),
     get_ady_taken(R, C, Addr, AdjTaken),
-    not(AdjTaken \= []),
+    AdjTaken \= [],
     adj_connected_to_board(AdjT,AdjValid1),
     append([[R,C]],AdjValid1,AdjValid).
 
@@ -359,12 +392,85 @@ valid_spider_moves(board(R,C,s,Color,Id,SP, _, _),MovesList):-
     print('will_insect_not_break_hive \n'),
     address(Addr),
     adj_path_out(R,C,Addr,Adjs),
-    get_adj_valid(board(R,C,a,Color,Id,SP, _, _),Adjs, AdjMoves),
-    not(AdjMoves \= []),
+    adj_with_taken_in_common(R,C,Adjs,AdjMoves),
+    AdjMoves \= [],
 
-    retract(board(R,C,a,Color,Id,SP, _, _)),
-    % let_adj_do_their_thing_spider(AdjMoves,[[R,C]], MovesList, 1),
-    assert(board(R,C,a,Color,Id,SP, _, _)).
+    retract(board(R,C,s,Color,Id,SP, _, _)),
+    let_adj_do_their_thing_spider(AdjMoves,[[R,C]],2 ,MovesList),
+    assert(board(R,C,s,Color,Id,SP, _, _)).
+
+valid_spider_moves(board(R,C,s,Color,Id,SP, _, _),[]).
+
+move_spider(board(R,C,s,Color,Id,SP, _, _),R_new,C_new):-
+    board(R,C,s,Color,Id,SP, _, _),
+    valid_moves(board(R,C,a,Color,Id,SP, _, _),Moves),
+    X = [R_new,C_new],
+    print(Moves),
+    member(X,Moves),
+    retract(board(R,C,s,Color,Id, StackPosition, _, _)),
+    assert(board(R_new,C_new,s,Color,Id, SP, _, _)),
+    !.
+move_spider(board(R,C,s,Color,Id,SP, _, _),R_new,C_new):-
+    format('Invalid move'),
+    !,fail.
+
+let_adj_do_their_thing_spider([[R,C] |Adj],AuxVisited,3,Moves):-
+    not(member([R,C],AuxVisited)),    
+    address(Addr),
+    adj_path_out(R,C,Addr,Adj1),
+    adj_with_taken_in_common(R,C,Adj1,AdjCommon),
+    no_backtrack_adj(AuxVisited,AdjCommon, AdjValid),
+    Moves = AdjValid,
+    !.
+
+let_adj_do_their_thing_spider([[R,C] |Adj],AuxVisited,3,Moves):-
+    let_adj_do_their_thing_spider(Adj,AuxVisited,3,Moves).
+
+let_adj_do_their_thing_spider([[R,C] |Adj],AuxVisited,Level,Moves):-
+    not(member([R,C],AuxVisited)),    
+    address(Addr),
+    adj_path_out(R,C,Addr,Adj1),
+    adj_with_taken_in_common(R,C,Adj1,AdjValid1),
+    list_to_set(AdjValid1,AdjValid),
+    append([[R,C]],AuxVisited, AuxVisited1),
+    LevelAux is Level +1,
+    let_adj_do_their_thing_spider(AdjValid,AuxVisited1, LevelAux, Moves1),
+    let_adj_do_their_thing_spider(Adj,AuxVisited,Level,Moves2),    
+    append(Moves1,Moves2,Moves).
+
+
+
+let_adj_do_their_thing_spider([[R,C] |Adj],AuxVisited,Level,Moves):-
+    let_adj_do_their_thing(Adj,AuxVisited,Level,Moves).
+
+let_adj_do_their_thing_spider([],AuxVisited,Level,[]).
+
+
+
+
+adj_with_taken_in_common(R,C,[[R1,C1]| AdjT], AdjValid):-
+    address(Addr),
+    get_ady_taken(R1, C1, Addr, AdjTaken),
+    get_ady_taken(R, C, Addr, AdjTaken1),
+    common_elements(AdjTaken,AdjTaken1),
+    adj_with_taken_in_common(R,C,AdjT,AdjValid1),
+    append([[R1,C1]],AdjValid1,AdjValid).
+
+adj_with_taken_in_common(R,C,[[R1,C1]| AdjT], AdjValid):-
+    adj_with_taken_in_common(R,C,AdjT,AdjValid).   
+
+adj_with_taken_in_common(R,C,[], []). 
+
+no_backtrack_adj(AuxVisited,[H|AdjCommon], AdjValid):-
+    not(member(H,AuxVisited)),
+    no_backtrack_adj(AuxVisited,AdjCommon,AdjVAlid1),
+    append([H],AdjVAlid1,AdjValid).
+no_backtrack_adj(AuxVisited,[H|AdjCommon], AdjValid):-
+    no_backtrack_adj(AuxVisited,AdjCommon, AdjValid).
+no_backtrack_adj(AuxVisited,[], []).
+
+
+
 %------------------------------------------------------------------
 
     
