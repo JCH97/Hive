@@ -4,7 +4,9 @@
 ].
 
 
-:- dynamic [board/8, plays/1, turn/1].
+% aux_board se usa para almacenar las cartas que no juegan, las cartas de seleccion
+
+:- dynamic [board/8, aux_board/8, plays/1, turn/1].
 
 %% hormigas => a         arannas => s
 %% saltamontes => g     abeja reina => q
@@ -25,46 +27,56 @@
 
 % row, column, type, color, id, stack, pixel_row, pixel_column
 
-board(2, -2, a, b, 1, 0, 50, 50).
-board(1, -1, q, b, 2, 0, 50, 50).
-board(2, 0, b, b, 3, 0, 50, 50).
-board(1, 1, q, b, 4, 0, 50, 50).
-board(-1, 1, q, b, 5, 0, 50, 50).
-board(-2, 0, aa, b, 6, 0, 50, 50).
-board(-1, -1, aa, n, 7, 0, 50, 50).
+% board(0, 0, q, w, 1, 0, 195, 250).
+% board(2, 0, q, b, 2, 0, 250, 250).
+% board(4, 0, a, b, 3, 0, 305, 250).
+% board(6, 0, s, b, 4, 0, 360, 250).
+% board(1, -1, q, w, 5, 0, 50, 50).
+% board(-1, -1, b, b, 6, 0, 50, 50).
+% board(1, 1, q, b, 7, 0, 50, 50).
+% board(-1, 1, q, b, 5, 0, 50, 50).
+% board(-2, 0, aa, b, 6, 0, 50, 50).
+% board(-1, -1, aa, n, 7, 0, 50, 50).
 % board(-2, 0, q1, b, 4,0).
 % board(-1, -1, q1, b, 7,0).
 
 %---------------------------
-board(-2, -2, s, b, 1, 0).
-board(0, -2, a, b, 2, 0).
-board(2, -2, a, b, 3, 0).
-board(3, -1, a, b, 4, 0).
-board(4, 0, a, b, 5, 0).
-board(3, 1, a, b, 6, 0).
-board(2, 2, a, b, 7, 0).
-board(0, 2, a, b, 8, 0).
-board(-2, 2, a, b, 9, 0).
-board(-3, 1, a, b, 10, 0).
-board(-4, 0, a, b, 11, 0).
-% board(-3, -1, a, b, 12, 0).
-board(-5, -1, a, b, 12, 0).
-board(-4, -2, a, b, 13, 0).
-
-
+% board(-2, -2, s, b, 1, 0).
+% board(0, -2, a, b, 2, 0).
+% board(2, -2, a, b, 3, 0).
+% board(3, -1, a, b, 4, 0).
+% board(4, 0, a, b, 5, 0).
+% board(3, 1, a, b, 6, 0).
+% board(2, 2, a, b, 7, 0).
+% board(0, 2, a, b, 8, 0).
+% board(-2, 2, a, b, 9, 0).
+% board(-3, 1, a, b, 10, 0).
+% board(-4, 0, a, b, 11, 0).
+% % board(-3, -1, a, b, 12, 0).
+% board(-5, -1, a, b, 12, 0).
+% board(-4, -2, a, b, 13, 0).
 
 %---------------------------
+
 plays(0).
 
-% place_piece:
-place_piece(Color, Ans) :- 
-findall([R, C], board(R, C, _, Color, _, _, _, _), SameColor),
-    place_piece_aux(SameColor, Ans),
+% where_place_piece
+where_place_piece(Color, Ans) :- 
+    findall([R, C], board(R, C, _, Color, _, _, _, _), SameColor),
+    where_place_piece_aux(SameColor, Ans),
     !.
 
-place_piece_aux([[HR, HC] | T], Ans) :-
+where_place_piece_aux([], []).
+
+where_place_piece_aux([[HR, HC] | T], Ans) :-
     address(Addr),
     adj_path_out(HR, HC, Addr, Ans).
+    % where_place_piece_aux(T, Ans).
+
+add_entry_in_board(R, C, Type, Color, _, Stack, PixRow, PixCol) :-
+    last_used_id(Id),
+    NewId is Id + 1,
+    assert(board(R, C, Type, Color, NewId, Stack, PixRow, PixCol)).
 
 new_play() :- 
     plays(R),
