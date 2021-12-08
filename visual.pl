@@ -13,18 +13,6 @@ width(600).
 size_cards(55).
 start_pos(point(455, 300)).
 
-amount(qw, 1).
-amount(aw, 3).
-amount(gw, 3).
-amount(bw, 2).
-amount(sw, 2).
-amount(qb, 1).
-amount(ab, 3).
-amount(gb, 3).
-amount(bb, 2).
-amount(sb, 2).
-
-
 resource(bw, image, image('bw-reduce.jpg')).
 resource(aw, image, image('aw-reduce.jpg')).
 resource(bb, image, image('bb-reduce.jpg')).
@@ -131,6 +119,8 @@ handle_card_out_game(Window, X, Y, _, []) :-
     new_image(Window, _, Type, S),
     get(S, x, Nx),
     get(S, y, Ny),
+    new_image(Window, _, white, point(X, Y)),
+    retract(aux_board(Type, Color, X, Y)),
     make_entry_in_board(0, 0, Type, Color, 0, Nx, Ny).
 
 % poner una carta en el tablero de juego en caso de que se haya elejido la carta de las que estan afuera, esto no es mover una carta del tablero
@@ -151,7 +141,9 @@ handle_card(Window, X, Y) :-
 
     get_board_position_with_pixeles(X, Y, R, C),
     
-    aux_board(Name, Color, _, _),
+    aux_board(Name, Color, BX, BY),
+    retract(aux_board(Name, Color, BX, BY)),
+    new_image(Window, _, white, point(BX, BY)),
     make_entry_in_board(R, C, Name, Color,  0, X, Y).
 
 
@@ -287,5 +279,4 @@ make_entry_in_board(R, C, Type, Color, SP, X, Y) :-
     last_used_id(TId),
     NewId is TId + 1,
     assert(card_place(Type, NewId, X, Y)),
-    % amount(Type, Quantity),
     add_entry_in_board(R, C, Type, Color, NewId, SP).
