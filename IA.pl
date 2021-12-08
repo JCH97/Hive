@@ -4,13 +4,13 @@
     './utils.pl'
  ].
  
- :- dynamic [board/8, plays/1, turn/1].
+ :- dynamic [board/6, plays/1, turn/1].
  
  minimax_depth(1).
 
-board(0,0,q,w,1,0,0,0).
-board(1,1,q,b,2,0,0,0).
-board(-1,-1,b,w,3,0,0,0).
+board(0,0,q,w,1,0).
+board(1,1,q,b,2,0).
+board(-1,-1,b,w,3,0).
 
 functioning1(CurrPlayer,Move):-
     functioning_aux1(CurrPlayer,0,_,Move).
@@ -36,9 +36,9 @@ move_simulation1([HMove|Moves],CurrPlayer,Level,Value,Move):-
 
 move_simulation1([],CurrPlayer,Level,-100000000,[]).
 
-move_chip1([board(R,C,Type,Color,Id,SP,_,_), RNew,CNew],CurrPlayer,Level,Value):-
-    Before = board(R,C,Type,Color,Id,SP,_,_),
-    move(board(R,C,Type,Color,Id,SP,_,_), RNew,CNew),
+move_chip1([board(R,C,Type,Color,Id,SP), RNew,CNew],CurrPlayer,Level,Value):-
+    Before = board(R,C,Type,Color,Id,SP),
+    move(board(R,C,Type,Color,Id,SP), RNew,CNew),
     board_value(CurrPlayer,Level,BValue),!,  
     (
         (
@@ -99,7 +99,7 @@ opponent_chips_blocked(Opponent,Value):-
 
 winning_move(Opponent,CurrLevel, Value):-
     address(Addr),
-    board(R,C,q,Opponent,_,_,_,_),
+    board(R,C,q,Opponent,_,_),
     get_ady_taken(R,C,Addr,Taken),
     length(Taken,L),
     L=6,
@@ -109,7 +109,7 @@ winning_move(_,_,0).
 
 queen_blocked(Opponent,Value):-
     address(Addr),
-    board(R,C,q,Opponent,_,_,_,_),
+    board(R,C,q,Opponent,_,_),
     adj_path_out(R,C,Addr,Moves),
     length(Moves,L),
     L =0,
@@ -118,7 +118,7 @@ queen_blocked(_,0).
 
 chips_sorrounding_queen(Opponent,Value):-
     address(Addr),
-    board(R,C,q,Opponent,_,_,_,_),
+    board(R,C,q,Opponent,_,_),
     get_ady_taken(R,C,Addr,Taken),
     length(Taken,L),    
     Value is  L*2.
@@ -131,30 +131,30 @@ get_all_player_chips(Player,Chips):-
     
 
 get_a_chip(Player,Chip):-
-    board(R,C,T,Player,Id,SP,_,_),
-    Chip = board(R,C,T,Player,Id,SP,_,_).
+    board(R,C,T,Player,Id,SP),
+    Chip = board(R,C,T,Player,Id,SP).
 
 
 
 
-filter_blocked_chips([board(R,C,_,_,_,SP,_,_)|Chips], Res):-
-    insect_above_me(board(R,C,_,_,_,SP,_,_)),
+filter_blocked_chips([board(R,C,_,_,_,SP)|Chips], Res):-
+    insect_above_me(board(R,C,_,_,_,SP)),
     filter_blocked_chips(Chips, Res1),
-    append([board(R,C,_,_,_,SP,_,_)],Res1,Res). 
-filter_blocked_chips([board(R,C,Type,Color,Id,SP,_,_)|Chips], Res):-    
-    not(will_insect_not_break_hive(board(R,C,Type,Color,Id,SP,_,_))),
+    append([board(R,C,_,_,_,SP)],Res1,Res). 
+filter_blocked_chips([board(R,C,Type,Color,Id,SP)|Chips], Res):-    
+    not(will_insect_not_break_hive(board(R,C,Type,Color,Id,SP))),
     filter_blocked_chips(Chips, Res1),
-    append([board(R,C,_,_,_,SP,_,_)],Res1,Res). 
+    append([board(R,C,_,_,_,SP)],Res1,Res). 
 
-filter_blocked_chips([board(R,C,_,_,_,SP,_,_)|Chips], Res):-
+filter_blocked_chips([board(R,C,_,_,_,SP)|Chips], Res):-
     address(Addr),
     
     adj_path_out(R,C,Addr,Moves),
     length(Moves,Length),
     Length >0,
     filter_blocked_chips(Chips, Res1),
-    append([board(R,C,_,_,_,SP,_,_)],Res1,Res). 
-filter_blocked_chips([board(R,C,_,_,_,SP,_,_)|Chips], Res):-
+    append([board(R,C,_,_,_,SP)],Res1,Res). 
+filter_blocked_chips([board(R,C,_,_,_,SP)|Chips], Res):-
     filter_blocked_chips(Chips, Res).
 filter_blocked_chips([], []).
     
