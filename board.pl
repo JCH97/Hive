@@ -2,7 +2,7 @@
     './utils.pl'
 ].
 
-:- dynamic [board/6, last_used_id/1, visited/1, count/1].
+:- dynamic [board/8, last_used_id/1, visited/1, count/1].
 
 % board(row, column, type, color, id,stackPosition)
 %stackPosition !=0 si es un 
@@ -28,7 +28,7 @@ get_ady_taken(_, _, [], []) :- !.
 get_ady_taken(OldRow, OldColumn, [R, C | T], [Id | T1]) :-
     NewRow is OldRow + R,
     NewCol is OldColumn + C,
-    board(NewRow, NewCol, _, _, Id,_),
+    board(NewRow, NewCol, _, _, Id,_, _, _),
     get_ady_taken(OldRow, OldColumn, T, T1),
     !.
 
@@ -41,7 +41,7 @@ get_ady_free(_, _, [], []) :- !.
 get_ady_free(OldRow, OldColumn, [R, C | T], [Id | T1]) :-
     NewRow is OldRow + R,
     NewCol is OldColumn + C,
-    not(board(NewRow, NewCol, _, _, Id,_)),
+    not(board(NewRow, NewCol, _, _, Id,_, _, _)),
     get_ady_free(OldRow, OldColumn, T, T1),
     !.
 
@@ -71,7 +71,7 @@ is_valid_board_aux(Id) :-
     % count(TemporalCounter),
     % format("counter ~w", [TemporalCounter]),
     % format("el id es ~w\n", [Id]),
-    board(Row, Col, _, _, Id,_),
+    board(Row, Col, _, _, Id,_, _, _),
     % format("las posiciones de la ficha son ~w , ~w\n", [Row, Col]),
     address(Address),
     get_ady_taken(Row, Col, Address, Adj),
