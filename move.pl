@@ -4,9 +4,7 @@
 ].
 
 
-% aux_board se usa para almacenar las cartas que no juegan, las cartas de seleccion
-
-:- dynamic [board/6, aux_board/8, plays/1, turn/1].
+:- dynamic [board/6, plays/1, turn/1].
 
 %% hormigas => a         arannas => s
 %% saltamontes => g     abeja reina => q
@@ -14,23 +12,23 @@
 
 plays(0).
 
+% board(0, 0, gb, b, 1, 0).
+
 % where_place_piece
-where_place_piece(Color, Ans) :- 
-    findall([R, C], board(R, C, _, Color, _, _), SameColor),
-    where_place_piece_aux(SameColor, Ans),
-    !.
-
-where_place_piece_aux([], []).
-
-where_place_piece_aux([[HR, HC] | T], Ans) :-
+where_place_piece(R, C, Ans) :- 
     address(Addr),
-    adj_path_out(HR, HC, Addr, Ans).
-    % where_place_piece_aux(T, Ans).
+    adj_path_out(R, C, Addr, TempAns),
+    list_to_set(TempAns, Ans).
+
 
 add_entry_in_board(R, C, Type, Color, _, Stack) :-
     last_used_id(Id),
     NewId is Id + 1,
-    assert(board(R, C, Type, Color, NewId, Stack)).
+    assert(board(R, C, Type, Color, NewId, Stack)),
+    retractall(last_used_id(_)),
+    assert(last_used_id(NewId)),
+    new_play().
+    
 
 new_play() :- 
     plays(R),
