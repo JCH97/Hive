@@ -25,13 +25,13 @@
 
 % row, column, type, color, id, stack, pixel_row, pixel_column
 
-board(2, -2, a, b, 1, 0, 50, 50).
-board(1, -1, q, b, 2, 0, 50, 50).
-board(2, 0, b, b, 3, 0, 50, 50).
-board(1, 1, q, b, 4, 0, 50, 50).
-board(-1, 1, q, b, 5, 0, 50, 50).
-board(-2, 0, aa, b, 6, 0, 50, 50).
-board(-1, -1, aa, n, 7, 0, 50, 50).
+% board(2, -2, a, b, 1, 0, 50, 50).
+% board(1, -1, q, b, 2, 0, 50, 50).
+% board(2, 0, b, b, 3, 0, 50, 50).
+% board(1, 1, q, b, 4, 0, 50, 50).
+% board(-1, 1, q, b, 5, 0, 50, 50).
+% board(-2, 0, aa, b, 6, 0, 50, 50).
+% board(-1, -1, aa, n, 7, 0, 50, 50).
 % board(-2, 0, q1, b, 4,0).
 % board(-1, -1, q1, b, 7,0).
 
@@ -189,8 +189,8 @@ valid_moves(board(R,C,b,Color,Id, StackPosition, _, _),Moves):-
     print(MovesList),    
     list_to_set(MovesList,Moves),!.
 
-valid_moves(board(R,C,a,Color,Id, StackPosition),Moves):-
-    valid_ant_moves(board(R,C,a,Color,Id,StackPosition),MovesList),
+valid_moves(board(R,C,a,Color,Id, StackPosition,_,_),Moves):-
+    valid_ant_moves(board(R,C,a,Color,Id,StackPosition,_,_),MovesList),
     print(MovesList),    
     list_to_set(MovesList,Moves),!.
 
@@ -204,10 +204,10 @@ move(board(R, C, aa, Color, Id, StackPosition, _, _), R_new, C_new):-
     !.
 
 move(board(R,C,b,Color,Id, StackPosition, _, _), R_new,C_new):-
-    move_beetle(board(R,C,b,Color,Id, StackPosition),R_new,C_new),!.
+    move_beetle(board(R,C,b,Color,Id, StackPosition,_,_),R_new,C_new),!.
 
-move(board(R,C,a,Color,Id, StackPosition), R_new,C_new):-
-    move_ant(board(R,C,a,Color,Id, StackPosition),R_new,C_new),!.
+move(board(R,C,a,Color,Id, StackPosition,_,_), R_new,C_new):-
+    move_ant(board(R,C,a,Color,Id, StackPosition,_,_),R_new,C_new),!.
 
 
 % ----------------Queen Move-------------------------------------
@@ -344,16 +344,16 @@ valid_ant_moves(board(R,C,a,Color,Id,SP, _, _),MovesList):-
 
 valid_ant_moves(board(R,C,a,Color,Id,SP, _, _),[]).
 
-move_ant(board(R,C,a,Color,Id,SP),R_new,C_new):-
-    board(R,C,a,Color,Id,SP),
+move_ant(board(R,C,a,Color,Id,SP,_,_),R_new,C_new):-
+    board(R,C,a,Color,Id,SP,_,_),
     valid_moves(board(R,C,a,Color,Id,SP),Moves),
     X = [R_new,C_new],
     print(Moves),
     member(X,Moves),
-    retract(board(R,C,a,Color,Id, StackPosition)),
-    assert(board(R_new,C_new,a,Color,Id, SP)),
+    retract(board(R,C,a,Color,Id, StackPosition,_,_)),
+    assert(board(R_new,C_new,a,Color,Id, SP,_,_)),
     !.
-move_ant(board(R,C,a,Color,Id,SP),R_new,C_new):-
+move_ant(board(R,C,a,Color,Id,SP,_,_),R_new,C_new):-
     format('Invalid move'),
     !,fail.
 
