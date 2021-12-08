@@ -1,5 +1,5 @@
 %% hormigas => a         arannas => s
-%% saltamontes => aa     abeja reina => q
+%% saltamontes => g     abeja reina => q
 %% escarabajos => b
 
 :- [
