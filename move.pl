@@ -87,7 +87,7 @@ will_insect_not_break_hive(board(R,C,Type,Color,Id,SP)):-
     Aux is Count - 1 ,
     retract(last_used_id(_)),
     assert(last_used_id(Aux)),
-    is_valid_board(Aux),
+    is_valid_board(),
     print('board is valid \n'),
     !,
     assert(board(R,C,Type,Color,Id,SP)),
@@ -130,7 +130,7 @@ adj_path_out(R,C,[R_Dir1,C_Dir1],[]).
 get_adj_valid(board(R,C,T,Color,Id, StackPosition),[[R1,C1]|AdjFree],MovesList):-
     retract(board(R,C,T,Color,Id, StackPosition)),
     assert(board(R1,C1,T,Color,Id, StackPosition)),
-    is_valid_board(Id),
+    is_valid_board(),
     retract(board(R1,C1,T,Color,Id, StackPosition)),
     assert(board(R,C,T,Color,Id, StackPosition)),
 

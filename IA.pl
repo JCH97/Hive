@@ -8,9 +8,9 @@
  
  minimax_depth(1).
 
-board(0,0,q,w,1,0).
-board(1,1,q,b,2,0).
-board(-1,-1,b,w,3,0).
+% board(0,0,q,w,1,0).
+% board(1,1,q,b,2,0).
+% board(-1,-1,b,w,3,0).
 
 functioning1(CurrPlayer,Move):-
     functioning_aux1(CurrPlayer,0,_,Move).
