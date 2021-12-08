@@ -201,6 +201,11 @@ valid_moves(board(R,C,b,Color,Id, StackPosition, _, _),Moves):-
     print(MovesList),    
     list_to_set(MovesList,Moves),!.
 
+valid_moves(board(R,C,a,Color,Id, StackPosition),Moves):-
+    valid_ant_moves(board(R,C,a,Color,Id,StackPosition),MovesList),
+    print(MovesList),    
+    list_to_set(MovesList,Moves),!.
+
 
 move(board(R,C,q,Color,Id, StackPosition, _, _), R_new,C_new):-
     move_queen(board(R,C,q,Color,Id, StackPosition, _, _),R_new,C_new),
@@ -212,6 +217,9 @@ move(board(R, C, aa, Color, Id, StackPosition, _, _), R_new, C_new):-
 
 move(board(R,C,b,Color,Id, StackPosition, _, _), R_new,C_new):-
     move_beetle(board(R,C,b,Color,Id, StackPosition),R_new,C_new),!.
+
+move(board(R,C,a,Color,Id, StackPosition), R_new,C_new):-
+    move_ant(board(R,C,a,Color,Id, StackPosition),R_new,C_new),!.
 
 
 % ----------------Queen Move-------------------------------------
