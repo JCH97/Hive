@@ -89,8 +89,8 @@ click_event_handler(Window, Pos) :-
 
     !,
 
-    handle_card_out_game(Window, X, Y, Pos, DrawedPositions), 
     clean_drawed_positions(Window),
+    handle_card_out_game(Window, X, Y, Pos, DrawedPositions), 
     aux_board(Name, _, X, Y),
     save_drawed_positions(Name, DrawedPositions),
     draw_arrows(Window).
@@ -101,7 +101,7 @@ click_event_handler(Window, Pos) :-
     get_card_clicked(Pos, [X, Y | _]),
     
     handle_card(Window, X, Y, DrawedPositions),
-     
+
     clean_drawed_positions(Window),
     aux_board(Name, _, X, Y),
     save_drawed_positions(Name, DrawedPositions),
@@ -160,13 +160,16 @@ handle_card(Window, X, Y, _) :-
     aux_board(Name, Color, BX, BY),
     retract(aux_board(Name, Color, BX, BY)),
     new_image(Window, _, white, point(BX, BY)),
-    make_entry_in_board(R, C, Name, Color,  0, X, Y), 
+    make_entry_in_board(R, C, Name, Color,  0, X, Y),
+
+    draw_arrows(Window), 
     !.
 
 
 % para mover una carta del tablero 
 handle_card(Window, X, Y, DrawedPositions) :-
     get_board_position_with_pixeles(X, Y, R, C),
+
     board(R, C, Type, Color, Id, SP),
 
     valid_moves(board(R, C, Type, Color, Id, SP), Moves),
@@ -309,7 +312,8 @@ make_entry_in_board(R, C, Type, Color, SP, X, Y) :-
     last_used_id(TId),
     NewId is TId + 1,
     assert(card_place(Type, NewId, X, Y)),
-    add_entry_in_board(R, C, Type, Color, NewId, SP).
+    map_from_compuest_type(Type, NewType),
+    add_entry_in_board(R, C, NewType, Color, NewId, SP).
 
 draw_arrows(Window) :-
     plays(P),
@@ -331,3 +335,9 @@ draw_arrows(Window) :-
     right_arrow_pos(RX, RY),
     new_image(Window, _, white, point(LX, LY)),
     new_image(Window, _, rightArrow, point(RX, RY)).
+
+map_from_compuest_type(Type, NewType) :- 
+    sub_atom(Type, 0, 1, _, NewType).
+
+map_to_compuest_type(Type, Color, NewType) :-
+    atom_concat(Type, Color, NewType).
