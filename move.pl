@@ -158,10 +158,16 @@ valid_moves(board(R,C,a,Color,Id, StackPosition),Moves):-
     print(MovesList),    
     list_to_set(MovesList,Moves),!.
 
+valid_moves(board(R,C,g,Color,Id, StackPosition),Moves):-
+    valid_g_move(board(R,C,g,Color,Id,StackPosition),MovesList),
+    print(MovesList),    
+    list_to_set(MovesList,Moves),!.
 
-move(board(R,C,q,Color,Id, StackPosition), R_new,C_new):-
-    move_queen(board(R,C,q,Color,Id, StackPosition),R_new,C_new),
-    !.
+valid_moves(board(R,C,s,Color,Id, StackPosition),Moves):-
+    valid_spider_moves(board(R,C,s,Color,Id,StackPosition),MovesList),
+    print(MovesList),    
+    list_to_set(MovesList,Moves),!.
+
 
 move(board(R, C, aa, Color, Id, StackPosition), R_new, C_new):-
     move_queen(board(R, C, aa, Color, Id, StackPosition), R_new, C_new),
@@ -206,7 +212,7 @@ move_queen(board(R,C,q,Color,Id, StackPosition),R_new,C_new):-
 
 % ----------------------- Grasshopper Move ---------------------------------
 
-valid_aa_move(board(R, C, aa, Color, Id, StackPosition), ValidPos) :-
+valid_g_move(board(R, C, aa, Color, Id, StackPosition), ValidPos) :-
     board(R, C, aa, Color, Id, StackPosition),
 
     not(insect_above_me(board(R, C, aa, Color, Id, StackPosition))),
@@ -217,10 +223,10 @@ valid_aa_move(board(R, C, aa, Color, Id, StackPosition), ValidPos) :-
     address(Address),
     get_ady_taken(R, C, Address, Adj),
 
-    valid_aa_move_aux(board(R, C, aa, Color, Id, StackPosition), Adj , ValidPos).
+    valid_g_move_aux(board(R, C, aa, Color, Id, StackPosition), Adj , ValidPos).
 
 
-valid_aa_move_aux(board(R, C, aa, Color, Id, StackPosition), [HAdj | TAdj], ValidPos) :-
+valid_g_move_aux(board(R, C, aa, Color, Id, StackPosition), [HAdj | TAdj], ValidPos) :-
     board(R, C, aa, Color, Id, StackPosition),
 
     board(TR, TC, TType, TColor, HAdj, TStackPosition),
@@ -234,16 +240,16 @@ valid_aa_move_aux(board(R, C, aa, Color, Id, StackPosition), [HAdj | TAdj], Vali
 
     print(AuxValidPos),
 
-    valid_aa_move_aux(board(R, C, aa, Color, Id, StackPosition), TAdj, AuxValidPos2),
+    valid_g_move_aux(board(R, C, aa, Color, Id, StackPosition), TAdj, AuxValidPos2),
 
     append(AuxValidPos1, AuxValidPos2, ValidPos).
     
-valid_aa_move_aux(board(_, _, aa, _, _, _), [], []).
+valid_g_move_aux(board(_, _, aa, _, _, _), [], []).
     % append(H, )
-    % valid_aa_move_aux(board())
+    % valid_g_move_aux(board())
 
 
-valid_aa_move_aux(board(_, _, aa, _, _, _), [], []).
+valid_g_move_aux(board(_, _, aa, _, _, _), [], []).
 
 walk_for_direction(R, C, Type, DirectionRow, DirectionCol, ValidPos) :-
     board(R, C, _, _, _, _),

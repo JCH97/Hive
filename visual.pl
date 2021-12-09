@@ -12,6 +12,8 @@ height(1000).
 width(600).
 size_cards(55).
 start_pos(point(455, 300)).
+left_arrow_pos(55, 0).
+right_arrow_pos(890, 0).
 
 resource(bw, image, image('bw-reduce.jpg')).
 resource(aw, image, image('aw-reduce.jpg')).
@@ -26,6 +28,8 @@ resource(sw, image, image('sw-reduce.jpg')).
 resource(ab, image, image('ab-reduce.jpg')).
 resource(white, image, image('white.jpg')).
 resource(valid, image, image('valid.jpg')).
+resource(leftArrow, image, image('left-arrow.jpg')).
+resource(rightArrow, image, image('right-arrow.jpg')).
 
 % card-place => name, Id, X, Y => para almacenar las cartas puestas en el tablero
 % aux_board => name, Color, X, Y => para almacenar las cartas con las que se juega
@@ -50,6 +54,7 @@ start :-
     new(Window, window("Hive", size(H, W))),
     send(Window, open),
     draw_board(Window),
+    draw_arrows(Window),
     % draw_test(Window),
     send(Window, recogniser, click_gesture(left,
                                             '',
@@ -81,27 +86,36 @@ click_event_handler(Window, Pos) :-
     % new(Window, window("Hive", size(H, W))),
     
     (X =:= 0; X =:= 945),
+
     !,
+
     handle_card_out_game(Window, X, Y, Pos, DrawedPositions), 
     clean_drawed_positions(Window),
     aux_board(Name, _, X, Y),
-    save_drawed_positions(Name, DrawedPositions).
+    save_drawed_positions(Name, DrawedPositions),
+    draw_arrows(Window).
     
 
 % si se va a mover una carta del tablero
 click_event_handler(Window, Pos) :-
     get_card_clicked(Pos, [X, Y | _]),
     
-    handle_card(Window, X, Y).
+    handle_card(Window, X, Y, DrawedPositions),
+     
+    clean_drawed_positions(Window),
+    aux_board(Name, _, X, Y),
+    save_drawed_positions(Name, DrawedPositions),
+
+    draw_arrows(Window).
 
 
-% se usa para manejar las cartas de seleccion de bichos.
+% se usa para manejar las cartas que estan fuera del tablero 
 handle_card_out_game(Window, X, Y, _, DrawedPositions) :-   
     aux_board(_, Color, X, Y),
     
     fix_color(Color, NewColor),
 
-    findall(Id, board(_, _, _, NewColor, Id, _), SameColorIds), 
+    findall(Id, board(_, _, _, NewColor, Id, _), SameColorIds),
     % SameColor indica todas las cartas en el tablero con el mismo color que sobre la que se hizo click
 
     % where_place_piece(NewColor, PathOut, StartPoint),
@@ -114,17 +128,19 @@ handle_card_out_game(Window, X, Y, _, DrawedPositions) :-
 % primera vez que se pone una carta en el tablero
 handle_card_out_game(Window, X, Y, _, []) :-
     aux_board(Type, Color, X, Y),
-
+    
     start_pos(S),
     new_image(Window, _, Type, S),
     get(S, x, Nx),
     get(S, y, Ny),
     new_image(Window, _, white, point(X, Y)),
     retract(aux_board(Type, Color, X, Y)),
-    make_entry_in_board(0, 0, Type, Color, 0, Nx, Ny).
+    make_entry_in_board(0, 0, Type, Color, 0, Nx, Ny),
+    draw_arrows(Window),
+    !.
 
-% poner una carta en el tablero de juego en caso de que se haya elejido la carta de las que estan afuera, esto no es mover una carta del tablero
-handle_card(Window, X, Y) :- 
+% poner una carta en el tablero de juego una vez que se haya seleccionado la carta que se kiere mover
+handle_card(Window, X, Y, _) :- 
 
      % verificando que sea el predicado correcto
     findall([TX, TY], drawed_positions(TX, TY), Ans),
@@ -144,7 +160,21 @@ handle_card(Window, X, Y) :-
     aux_board(Name, Color, BX, BY),
     retract(aux_board(Name, Color, BX, BY)),
     new_image(Window, _, white, point(BX, BY)),
-    make_entry_in_board(R, C, Name, Color,  0, X, Y).
+    make_entry_in_board(R, C, Name, Color,  0, X, Y), 
+    !.
+
+
+% para mover una carta del tablero 
+handle_card(Window, X, Y, DrawedPositions) :-
+    get_board_position_with_pixeles(X, Y, R, C),
+    board(R, C, Type, Color, Id, SP),
+
+    valid_moves(board(R, C, Type, Color, Id, SP), Moves),
+    
+    length(Moves, L),
+    L > 0,
+
+    draw_list(Window, Moves, DrawedPositions).
 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% UTILS %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -280,3 +310,24 @@ make_entry_in_board(R, C, Type, Color, SP, X, Y) :-
     NewId is TId + 1,
     assert(card_place(Type, NewId, X, Y)),
     add_entry_in_board(R, C, Type, Color, NewId, SP).
+
+draw_arrows(Window) :-
+    plays(P),
+    R is P mod 2,
+    R =:= 0,
+    
+    % draw left arrow
+
+    right_arrow_pos(RX, RY),
+    left_arrow_pos(LX, LY),
+    new_image(Window, _, white, point(RX, RY)),
+    new_image(Window, _, leftArrow, point(LX, LY)),
+    !.
+
+draw_arrows(Window) :-
+    % draw right arrow
+
+    left_arrow_pos(LX, LY),
+    right_arrow_pos(RX, RY),
+    new_image(Window, _, white, point(LX, LY)),
+    new_image(Window, _, rightArrow, point(RX, RY)).
