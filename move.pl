@@ -128,6 +128,7 @@ adj_path_out(R,C,[R_Dir1,C_Dir1],[]).
 get_adj_valid(board(R,C,T,Color,Id, StackPosition),[[R1,C1]|AdjFree],MovesList):-
     retract(board(R,C,T,Color,Id, StackPosition)),
     assert(board(R1,C1,T,Color,Id, StackPosition)),
+    listing(board),
     is_valid_board(),
     retract(board(R1,C1,T,Color,Id, StackPosition)),
     assert(board(R,C,T,Color,Id, StackPosition)),
@@ -169,9 +170,8 @@ valid_moves(board(R,C,s,Color,Id, StackPosition),Moves):-
     list_to_set(MovesList,Moves),!.
 
 
-move(board(R, C, aa, Color, Id, StackPosition), R_new, C_new):-
-    move_queen(board(R, C, aa, Color, Id, StackPosition), R_new, C_new),
-    !.
+move(board(R, C, q, Color, Id, StackPosition), R_new, C_new):-
+    move_queen(board(R, C, q, Color, Id, StackPosition), R_new, C_new), !.
 
 move(board(R,C,b,Color,Id, StackPosition), R_new,C_new):-
     move_beetle(board(R,C,b,Color,Id, StackPosition),R_new,C_new),!.
@@ -179,6 +179,12 @@ move(board(R,C,b,Color,Id, StackPosition), R_new,C_new):-
 move(board(R,C,a,Color,Id, StackPosition), R_new,C_new):-
     move_ant(board(R,C,a,Color,Id, StackPosition),R_new,C_new),!.
 
+
+move(board(R,C,s,Color,Id, StackPosition), R_new,C_new):-
+    move_spider(board(R,C,a,Color,Id, StackPosition),R_new,C_new),!.
+
+% move(board(R,C,g,Color,Id, StackPosition), R_new,C_new):-
+%     move_grasshopper(board(R,C,g,Color,Id, StackPosition),R_new,C_new),!.
 
 % ----------------Queen Move-------------------------------------
 
@@ -306,7 +312,7 @@ valid_ant_moves(board(R,C,a,Color,Id,SP),MovesList):-
     address(Addr),
     adj_path_out(R,C,Addr,Adjs),
     get_adj_valid(board(R,C,a,Color,Id,SP),Adjs, AdjMoves),
-    not(AdjMoves \= []),
+    AdjMoves \= [],
 
     retract(board(R,C,a,Color,Id,SP)),
     let_adj_do_their_thing(AdjMoves,[[R,C]],Visited, MovesList),
