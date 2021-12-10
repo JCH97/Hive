@@ -201,8 +201,8 @@ draw_list(_, [], []) :- !.
 
 draw_list(Window, [Id | T], DrawedPositions) :-
     card_place(_, Id, X, Y),
-    board(R, C, _, _, Id, _),
-    where_place_piece(R, C, PathOut),
+    board(R, C, _, Color, Id, _),
+    where_place_piece(R, C, Color, PathOut),
     draw_list_aux(Window, PathOut, point(X, Y), Aux1DrawedPositions),
     draw_list(Window, T, Aux2DrawedPositions),
     append(Aux1DrawedPositions, Aux2DrawedPositions, DrawedPositions).
@@ -296,8 +296,18 @@ clean_drawed_positions_aux(Window, [[X, Y | _] | T]) :-
     clean_drawed_positions_aux(Window, T).
 
 save_drawed_positions(Name, X, Y, IsFromBoard, DrawedPositions) :-
+    save_drawed_positions_aux(DrawedPositions),
+    save_clicked_card(Name, X, Y, IsFromBoard).
+
+save_clicked_card(Name, X, Y, IsFromBoard) :-
+    findall(_, drawed_positions(_, _), Ans),
+    length(Ans, L),
+    L > 0,
     assert(clicked_card(Name, X, Y, IsFromBoard)),
-    save_drawed_positions_aux(DrawedPositions).
+    !.
+
+save_clicked_card(_, _, _, _) :- !.
+
 
 save_drawed_positions_aux([]) :- !.
 
@@ -398,3 +408,15 @@ valids_colors(Color, [[_, _, TColor | _] | T]) :-
     Color = TColor,
     valids_colors(Color, T).
 
+get_from_out_cards_for_ia(Color, Ans) :-
+    findall(Name, aux_board(Name, Color, _, _), TempAns),
+    sort(TempAns, WithOutRepeted),
+    get_from_out_cards_for_ia_aux(WithOutRepeted, Ans).
+
+get_from_out_cards_for_ia_aux([], []) :- !.
+
+get_from_out_cards_for_ia_aux([N | T], Ans) :-
+    aux_board(N, _, X, Y),
+    get_from_out_cards_for_ia_aux(T, AnsTemp),
+    append([[X, Y]], AnsTemp, Ans),
+    !.

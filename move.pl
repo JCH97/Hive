@@ -15,10 +15,40 @@ plays(0).
 % board(0, 0, gb, b, 1, 0).
 
 % where_place_piece
-where_place_piece(R, C, Ans) :- 
+where_place_piece(R, C, Color, Ans) :- 
     address(Addr),
     adj_path_out(R, C, Addr, TempAns),
-    list_to_set(TempAns, Ans).
+    list_to_set(TempAns, WithOutRepeted),
+    apply_sieve(WithOutRepeted, Color, Ans).
+
+apply_sieve(WithOutRepeted, _, Ans) :-
+    plays(P),
+    P < 2,
+    append([], WithOutRepeted, Ans),
+    !.
+
+apply_sieve(WithOutRepeted, Color, Ans) :-
+    apply_sieve_aux(WithOutRepeted, Color, Ans).
+
+apply_sieve_aux([], _, []) :- !.
+
+apply_sieve_aux([[R, C | _] | T], Color, [[TR, TC | _] | TT]) :-
+    address(Addr),
+    get_ady_taken(R, C, Addr, IdsAdy),
+    findall(TColor, (member(Id, IdsAdy), board(_, _, _, TColor, Id, _)), TAns),
+    sort(TAns, AvailableColors),
+    length(AvailableColors, L),
+    L =:= 1,
+    sort(AvailableColors, [H | _]),
+    H = Color,
+    TR is R,
+    TC is C,
+    apply_sieve_aux(T, Color, TT),
+    !.
+
+apply_sieve_aux([[_, _ | _] | T], Color, Ans) :-
+    apply_sieve_aux(T, Color, Ans).
+    
 
 fix_last_used_id() :-
     retractall(last_used_id(_)),
