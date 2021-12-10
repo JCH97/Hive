@@ -1,3 +1,10 @@
+:- use_module(library(ordsets)).
+
+common_elements(A, B) :-
+    sort(A, AS), % can omit if using sorted A list
+    sort(B, BS), % can omit if using sorted B list
+    ord_intersect(AS, BS).
+
 row_directions([1, 1, 0, -1, -1, 0]).
 columns_directions([-1, 0, 1, 1, 0, -1]).
 
@@ -25,3 +32,4 @@ address1([-1,0,  /*up*/
 
 add_tail([], X, [X]).
 add_tail([H | T], X, [H | L]) :- add_tail(T, X, L).
+

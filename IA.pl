@@ -6,11 +6,26 @@
  
  :- dynamic [board/6, plays/1, turn/1].
  
- minimax_depth(1).
+ minimax_depth(4).
 
 % board(0,0,q,w,1,0).
 % board(1,1,q,b,2,0).
-% board(-1,-1,b,w,3,0).
+% % board(-1,-1,b,w,3,0).
+
+% board(0, 0, q, w, 1, 0).
+% board(1, -1, q, b, 2, 0).
+% board(-2, 0, b, w, 3, 0).
+% board(2, -2, a, b, 4, 0).
+
+board(0, 0, q, w, 1, 0).
+board(-1, -1, b, w, 2, 0).
+board(-2, 0, b, w, 3, 0).
+board(2, 0, b, w, 4, 0).
+board(-1, 1, b, w, 5, 0).
+board(1, 1, b, w, 6, 0).
+board(0, 2, s, b, 7, 0).
+
+
 
 functioning1(CurrPlayer,Move):-
     functioning_aux1(CurrPlayer,0,_,Move).
@@ -30,7 +45,7 @@ move_simulation1([HMove|Moves],CurrPlayer,Level,Value,Move):-
         );           
         (
             move_simulation1(Moves,CurrPlayer,Level,Value2,Move2),
-            better_move(HMove,Value1,Move2,Value2,Value,Move)
+            better_move(HMove,Value1,Move2,Value2,Move,Value)
         )
     ).
 
@@ -42,11 +57,11 @@ move_chip1([board(R,C,Type,Color,Id,SP), RNew,CNew],CurrPlayer,Level,Value):-
     board_value(CurrPlayer,Level,BValue),!,  
     (
         (
-            move_won(BValue,Level);
+            (move_won(BValue,Level);
             (
                 minimax_depth(MaxLevel),
-                MaxLevel = Level
-            ),            
+                MaxLevel is Level
+            ) ),           
             Value = BValue
         );
         (            
@@ -55,7 +70,9 @@ move_chip1([board(R,C,Type,Color,Id,SP), RNew,CNew],CurrPlayer,Level,Value):-
             Value = BValue - Value1
         )
         
-    ).
+    ),
+    retract(board(_,_,_,_,Id,_)),
+    assert(Before).
         
 %------------------------Utils----------------------
 
@@ -103,7 +120,7 @@ winning_move(Opponent,CurrLevel, Value):-
     get_ady_taken(R,C,Addr,Taken),
     length(Taken,L),
     L=6,
-    Value = (0.5**Level)*1 000 000.
+    Value is (0.5**CurrLevel)*1 000 000.
     
 winning_move(_,_,0).
 
