@@ -420,3 +420,15 @@ get_from_out_cards_for_ia_aux([N | T], Ans) :-
     get_from_out_cards_for_ia_aux(T, AnsTemp),
     append([[X, Y]], AnsTemp, Ans),
     !.
+
+get_valid_insert_pos_ia(Color, Ans) :-
+    findall(Id, board(_, _, _, Color, Id, _), SameColorIds),
+    get_valid_insert_pos_ia_aux(SameColorIds, Ans).
+
+get_valid_insert_pos_ia_aux([], []) :- !.
+
+get_valid_insert_pos_ia_aux([Id | T], ValidsPos) :-
+    board(R, C, _, Color, Id, _),
+    where_place_piece(R, C, Color, PathOut),
+    get_valid_insert_pos_ia_aux(T, Aux2DrawedPositions),
+    append(PathOut, Aux2DrawedPositions, ValidsPos).
