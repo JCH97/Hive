@@ -20,14 +20,44 @@ where_place_piece(R, C, Ans) :-
     adj_path_out(R, C, Addr, TempAns),
     list_to_set(TempAns, Ans).
 
+fix_last_used_id() :-
+    retractall(last_used_id(_)),
+    findall(Id, board(_, _, _, _, Id, _), Ans),
+    max_member(M, Ans),
+    assert(last_used_id(M)).
+    
 
-add_entry_in_board(R, C, Type, Color, _, Stack) :-
+add_entry_in_board(R, C, Type, Color, Stack, NewId) :-
+    % IsFromBoard =:= 0,
     last_used_id(Id),
     NewId is Id + 1,
     assert(board(R, C, Type, Color, NewId, Stack)),
     retractall(last_used_id(_)),
     assert(last_used_id(NewId)),
+    % fix_ids(),
     new_play().
+
+% add_entry_in_board(R, C, Type, Color, _, Stack) :-
+%     last_used_id(Id),
+%     NewId is Id + 1,
+%     assert(board(R, C, Type, Color, NewId, Stack)),
+%     new_play().
+
+fix_ids() :-
+    findall([R, C, Type, Color, Id, SP], board(R, C, Type, Color, Id, SP), Ans),
+    length(Ans, L),
+    retractall(last_used_id(_)),
+    assert(last_used_id(L)),
+    retractall(board(_, _, _, _, _, _)),
+    fix_ids_aux(Ans, 1).
+
+
+fix_ids_aux([], _) :- !.
+
+fix_ids_aux([ [R, C, Type, Color, _, SP | _] | T], IdTemp) :-
+    assert(board(R, C, Type, Color, IdTemp, SP)),
+    NewIdTemp is IdTemp + 1,
+    fix_ids_aux(T, NewIdTemp).
     
 
 new_play() :- 
@@ -128,7 +158,6 @@ adj_path_out(R,C,[R_Dir1,C_Dir1],[]).
 get_adj_valid(board(R,C,T,Color,Id, StackPosition),[[R1,C1]|AdjFree],MovesList):-
     retract(board(R,C,T,Color,Id, StackPosition)),
     assert(board(R1,C1,T,Color,Id, StackPosition)),
-    listing(board),
     is_valid_board(),
     retract(board(R1,C1,T,Color,Id, StackPosition)),
     assert(board(R,C,T,Color,Id, StackPosition)),

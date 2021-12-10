@@ -35,8 +35,8 @@ resource(rightArrow, image, image('right-arrow.jpg')).
 % aux_board => name, Color, X, Y => para almacenar las cartas con las que se juega
 % drawed_positions X, Y => se usa para almacenar las posiciones que tienen la imagen valid, para despues saber cuales
     % cuales son las posiciones validas para el proximo click
-% card_to_draw Name => almacena el nombre de la carta de las que estan afuera que se eligio para entrar al tablero.
-:- dynamic [card_place/4, aux_board/4, drawed_positions/2, card_to_draw/1].
+% clicked_card Name, X, Y, IsFromBoard => almacena el nombre y la posicion de la carta sobre la que se hizo clic y que por tanto es la proxima que hay que pintar en el tablero .
+:- dynamic [card_place/4, aux_board/4, drawed_positions/2, clicked_card/4].
 
 draw_test(Window) :- 
     new_image(Window, _, gb, point(455, 300)),
@@ -92,7 +92,7 @@ click_event_handler(Window, Pos) :-
     clean_drawed_positions(Window),
     handle_card_out_game(Window, X, Y, Pos, DrawedPositions), 
     aux_board(Name, _, X, Y),
-    save_drawed_positions(Name, DrawedPositions),
+    save_drawed_positions(Name, X, Y, 0, DrawedPositions),
     draw_arrows(Window).
     
 
@@ -100,11 +100,15 @@ click_event_handler(Window, Pos) :-
 click_event_handler(Window, Pos) :-
     get_card_clicked(Pos, [X, Y | _]),
     
-    handle_card(Window, X, Y, DrawedPositions),
+    handle_card(Window, X, Y, DrawedPositions), 
+    % el parametro name indica el nombre de la carta sobre la que se hizo click, es decir la carta que se kiere mover (ya sea de las que estan afuera o del tablero)
 
     clean_drawed_positions(Window),
-    aux_board(Name, _, X, Y),
-    save_drawed_positions(Name, DrawedPositions),
+
+    choose_card_to_move(X, Y, Name),
+
+    % aux_board(Name, _, X, Y),
+    save_drawed_positions(Name, X, Y, 1, DrawedPositions),
 
     draw_arrows(Window).
 
@@ -125,10 +129,13 @@ handle_card_out_game(Window, X, Y, _, DrawedPositions) :-
 
     draw_list(Window, SameColorIds, DrawedPositions).
 
+    % remove las cartas dentro de TemporalDrawedPositions que estan adj a otras con color distinto a NewColor
+    % filter_drawed_positions(TemporalDrawedPositions, NewColor, DrawedPositions).
+
 % primera vez que se pone una carta en el tablero
 handle_card_out_game(Window, X, Y, _, []) :-
     aux_board(Type, Color, X, Y),
-    
+
     start_pos(S),
     new_image(Window, _, Type, S),
     get(S, x, Nx),
@@ -149,7 +156,7 @@ handle_card(Window, X, Y, _) :-
 
     member([X, Y], Ans),
 
-    card_to_draw(Name),
+    clicked_card(Name, CR, CC, IsFromBoard),
 
     clean_drawed_positions(Window),
     
@@ -157,9 +164,10 @@ handle_card(Window, X, Y, _) :-
 
     get_board_position_with_pixeles(X, Y, R, C),
     
-    aux_board(Name, Color, BX, BY),
-    retract(aux_board(Name, Color, BX, BY)),
-    new_image(Window, _, white, point(BX, BY)),
+    retract_from_aux_board_or_remove_from_board(Window, Name, CR, CC, IsFromBoard),
+
+    sub_atom(Name, 1, 1, _, Color),
+
     make_entry_in_board(R, C, Name, Color,  0, X, Y),
 
     draw_arrows(Window), 
@@ -172,12 +180,9 @@ handle_card(Window, X, Y, DrawedPositions) :-
 
     board(R, C, Type, Color, Id, SP),
 
-    valid_moves(board(R, C, Type, Color, Id, SP), Moves),
-    
-    length(Moves, L),
-    L > 0,
+    valid_moves(board(R, C, Type, Color, Id, SP), DrawedPositionsBoardCoordenates),
 
-    draw_list(Window, Moves, DrawedPositions).
+    draw_list_aux(Window, DrawedPositionsBoardCoordenates, point(X, Y), DrawedPositions).
 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% UTILS %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -201,6 +206,7 @@ draw_list(Window, [Id | T], DrawedPositions) :-
     draw_list_aux(Window, PathOut, point(X, Y), Aux1DrawedPositions),
     draw_list(Window, T, Aux2DrawedPositions),
     append(Aux1DrawedPositions, Aux2DrawedPositions, DrawedPositions).
+    
 
 draw_list_aux(_, [], _, []) :- !.
 
@@ -280,7 +286,7 @@ draw_board_black_cards(Window, SZ, [H | T], RS, CS) :-
 clean_drawed_positions(Window) :-
     findall([X, Y], drawed_positions(X, Y), Ans),
     retractall(drawed_positions(_, _)),
-    retractall(card_to_draw(_)),
+    retractall(clicked_card(_, _, _, _)),
     clean_drawed_positions_aux(Window, Ans).
 
 clean_drawed_positions_aux(_, []) :- !.
@@ -289,8 +295,8 @@ clean_drawed_positions_aux(Window, [[X, Y | _] | T]) :-
     new_image(Window, _, white, point(X, Y)),
     clean_drawed_positions_aux(Window, T).
 
-save_drawed_positions(Name, DrawedPositions) :-
-    assert(card_to_draw(Name)),
+save_drawed_positions(Name, X, Y, IsFromBoard, DrawedPositions) :-
+    assert(clicked_card(Name, X, Y, IsFromBoard)),
     save_drawed_positions_aux(DrawedPositions).
 
 save_drawed_positions_aux([]) :- !.
@@ -309,11 +315,12 @@ fix_color(_, NewColor) :-
     NewColor = w.
 
 make_entry_in_board(R, C, Type, Color, SP, X, Y) :-
-    last_used_id(TId),
-    NewId is TId + 1,
-    assert(card_place(Type, NewId, X, Y)),
+    % last_used_id(TId),
+    % NewId is TId + 1,
+    % assert(card_place(Type, NewId, X, Y)),
     map_from_compuest_type(Type, NewType),
-    add_entry_in_board(R, C, NewType, Color, NewId, SP).
+    add_entry_in_board(R, C, NewType, Color, SP, NewId),
+    assert(card_place(Type, NewId, X, Y)).
 
 draw_arrows(Window) :-
     plays(P),
@@ -341,3 +348,53 @@ map_from_compuest_type(Type, NewType) :-
 
 map_to_compuest_type(Type, Color, NewType) :-
     atom_concat(Type, Color, NewType).
+
+choose_card_to_move(X, Y, Name) :-
+    aux_board(Name, _, X, Y), 
+    !.
+
+choose_card_to_move(X, Y, Name) :-
+    card_place(Name, _, X, Y),
+    !.
+
+% la carta que hay que quitar es de las que estan afuera del tablero para seleccionar
+retract_from_aux_board_or_remove_from_board(Window, Name, X, Y, IsFromBoard) :-
+    IsFromBoard =:= 0, 
+
+    aux_board(Name, Color, X, Y),
+    retract(aux_board(Name, Color, X, Y)),
+    new_image(Window, _, white, point(X, Y)),
+    !.
+
+% la carta que hay que quitar es de las que estan puestas en el tablero.
+retract_from_aux_board_or_remove_from_board(Window, Name, X, Y, _) :-
+    card_place(Name, Id, X, Y),
+
+    retract(board(_, _, _, _, Id, _)),
+    retract(card_place(_, Id, _, _)),
+
+    fix_last_used_id(),
+
+    new_image(Window, _, white, point(X, Y)).
+
+filter_drawed_positions([], _, []) :- !.
+
+filter_drawed_positions([[X, Y | _] | T], Color, [[AX, AY | _] | TT]) :-
+    get_board_position_with_pixeles(X, Y, R, C),
+    address(Addr),
+    get_ady_taken(R, C, Addr, IdsAdy),
+    findall([TR, TC, TColor], (member(Id, IdsAdy), board(TR, TC, _, TColor, Id, _)), TAns),
+    valids_colors(Color, TAns),
+    AX is X,
+    AY is Y,
+    filter_drawed_positions(T, Color, TT).
+
+filter_drawed_positions([[_, _ | _] | T], Color, Ans) :-
+    filter_drawed_positions(T, Color, Ans).
+
+valids_colors(_, []) :- !.
+
+valids_colors(Color, [[_, _, TColor | _] | T]) :-
+    Color = TColor,
+    valids_colors(Color, T).
+

@@ -52,7 +52,8 @@ get_id(Id) :-
     !.
 
 is_valid_board() :-
-    last_used_id(X),
+    findall(Id, board(_, _, _, _, Id, _), Ans),
+    length(Ans, X),
     X =:= 1,
     !.
 
@@ -60,13 +61,15 @@ is_valid_board() :-
     clear(),
     get_id(Id),
     is_valid_board_aux(Id),
-    last_used_id(X),
+    findall(_, board(_, _, _, _, _, _), Ans),
+    length(Ans, X),
     count(Amount),
     Amount =:= X,
     !.
 
 is_valid_board_aux(_) :-
-    last_used_id(X),
+    findall(_, board(_, _, _, _, _, _), Ans),
+    length(Ans, X),
     count(Amount),
     Amount =:= X,
     !.
