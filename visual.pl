@@ -168,11 +168,12 @@ handle_card(Window, X, Y, _) :-
 
     sub_atom(Name, 1, 1, _, Color),
 
-    make_entry_in_board(R, C, Name, Color,  0, X, Y),
+    get_stack_position(R, C, SP),
+
+    make_entry_in_board(R, C, Name, Color,  SP, X, Y),
 
     draw_arrows(Window), 
     !.
-
 
 % para mover una carta del tablero 
 handle_card(Window, X, Y, DrawedPositions) :-
@@ -186,6 +187,13 @@ handle_card(Window, X, Y, DrawedPositions) :-
 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% UTILS %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+get_stack_position(R, C, SP) :-
+    board(R, C, _, _, _, TSP),
+    SP is TSP + 1,
+    !.
+
+get_stack_position(_, _, 0).
 
 get_board_position_with_pixeles(X, Y, R, C) :-
     start_pos(StartPos),
@@ -379,6 +387,8 @@ retract_from_aux_board_or_remove_from_board(Window, Name, X, Y, IsFromBoard) :-
 % la carta que hay que quitar es de las que estan puestas en el tablero.
 retract_from_aux_board_or_remove_from_board(Window, Name, X, Y, _) :-
     card_place(Name, Id, X, Y),
+
+    % map_from_compuest_type(Name, Type),
 
     retract(board(_, _, _, _, Id, _)),
     retract(card_place(_, Id, _, _)),
