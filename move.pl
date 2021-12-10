@@ -128,7 +128,7 @@ adj_path_out(R,C,[R_Dir1,C_Dir1],[]).
 get_adj_valid(board(R,C,T,Color,Id, StackPosition),[[R1,C1]|AdjFree],MovesList):-
     retract(board(R,C,T,Color,Id, StackPosition)),
     assert(board(R1,C1,T,Color,Id, StackPosition)),
-    listing(board),
+    % listing(board),
     is_valid_board(),
     retract(board(R1,C1,T,Color,Id, StackPosition)),
     assert(board(R,C,T,Color,Id, StackPosition)),
@@ -181,7 +181,7 @@ move(board(R,C,a,Color,Id, StackPosition), R_new,C_new):-
 
 
 move(board(R,C,s,Color,Id, StackPosition), R_new,C_new):-
-    move_spider(board(R,C,a,Color,Id, StackPosition),R_new,C_new),!.
+    move_spider(board(R,C,s,Color,Id, StackPosition),R_new,C_new),!.
 
 % move(board(R,C,g,Color,Id, StackPosition), R_new,C_new):-
 %     move_grasshopper(board(R,C,g,Color,Id, StackPosition),R_new,C_new),!.
@@ -291,8 +291,11 @@ move_beetle(board(R,C,b,Color,Id, StackPosition),R_new,C_new):-
     print(Moves),
     member(X,Moves),
     retract(board(R,C,b,Color,Id, StackPosition)),
-    highest_SP(R_new,C_new,SP),
-    SP1 is SP+1,
+    (
+        (highest_SP(R_new,C_new,SP),
+        SP1 is SP+1);
+        SP1=0
+    ),
     assert(board(R_new,C_new,b,Color,Id, SP1)),
     !.
 
@@ -387,7 +390,7 @@ valid_spider_moves(board(R,C,s,Color,Id,SP),[]).
 
 move_spider(board(R,C,s,Color,Id,SP),R_new,C_new):-
     board(R,C,s,Color,Id,SP),
-    valid_moves(board(R,C,a,Color,Id,SP),Moves),
+    valid_moves(board(R,C,s,Color,Id,SP),Moves),
     X = [R_new,C_new],
     print(Moves),
     member(X,Moves),
