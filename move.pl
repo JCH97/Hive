@@ -279,22 +279,22 @@ move_queen(board(R,C,q,Color,Id, StackPosition),R_new,C_new):-
 
 % ----------------------- Grasshopper Move ---------------------------------
 
-valid_g_move(board(R, C, aa, Color, Id, StackPosition), ValidPos) :-
-    board(R, C, aa, Color, Id, StackPosition),
+valid_g_move(board(R, C, g, Color, Id, StackPosition), ValidPos) :-
+    board(R, C, g, Color, Id, StackPosition),
 
-    not(insect_above_me(board(R, C, aa, Color, Id, StackPosition))),
+    not(insect_above_me(board(R, C, g, Color, Id, StackPosition))),
     format("no insect above me. \n"),
 
-    % will_insect_not_break_hive(board(R,C,q,Color,Id,SP)), => TODO: fail this
+    will_insect_not_break_hive(board(R,C,g,Color,Id,SP)),
 
     address(Address),
     get_ady_taken(R, C, Address, Adj),
 
-    valid_g_move_aux(board(R, C, aa, Color, Id, StackPosition), Adj , ValidPos).
+    valid_g_move_aux(board(R, C, g, Color, Id, StackPosition), Adj , ValidPos).
 
 
-valid_g_move_aux(board(R, C, aa, Color, Id, StackPosition), [HAdj | TAdj], ValidPos) :-
-    board(R, C, aa, Color, Id, StackPosition),
+valid_g_move_aux(board(R, C, g, Color, Id, StackPosition), [HAdj | TAdj], ValidPos) :-
+    board(R, C, g, Color, Id, StackPosition),
 
     board(TR, TC, TType, TColor, HAdj, TStackPosition),
 
@@ -303,31 +303,32 @@ valid_g_move_aux(board(R, C, aa, Color, Id, StackPosition), [HAdj | TAdj], Valid
   
     format("Check from <~w ~w> with direction <~w ~w> \n", [TR, TC, DirectionRow, DirectionCol]),
 
-    walk_for_direction(TR, TC, aa, DirectionRow, DirectionCol, AuxValidPos1),
+    walk_for_direction(TR, TC, g, DirectionRow, DirectionCol, AuxValidPos1),
 
     print(AuxValidPos),
 
-    valid_g_move_aux(board(R, C, aa, Color, Id, StackPosition), TAdj, AuxValidPos2),
+    valid_g_move_aux(board(R, C, g, Color, Id, StackPosition), TAdj, AuxValidPos2),
 
-    append(AuxValidPos1, AuxValidPos2, ValidPos).
+    append(AuxValidPos1, AuxValidPos2, ValidPos),
+    !.
     
-valid_g_move_aux(board(_, _, aa, _, _, _), [], []).
-    % append(H, )
-    % valid_g_move_aux(board())
+valid_g_move_aux(board(_, _, g, _, _, _), [], []).
 
+walk_for_direction(R, C, _, _, _, ValidPos) :-
+    not(board(R, C, _, _, _, _)),
 
-valid_g_move_aux(board(_, _, aa, _, _, _), [], []).
+    append([], [[R, C]], ValidPos),
+    !.
 
 walk_for_direction(R, C, Type, DirectionRow, DirectionCol, ValidPos) :-
     board(R, C, _, _, _, _),
-
+    
     NewRow is DirectionRow + R,
     NewCol is DirectionCol + C,
-    walk_for_direction(NewRow, NewCol, Type, DirectionRow, DirectionCol, ValidPosAux),
 
-    append([[NewRow, NewCol]], ValidPosAux, ValidPos).
+    walk_for_direction(NewRow, NewCol, Type, DirectionRow, DirectionCol, ValidPos).
 
-walk_for_direction(_, _, _, _, _, []).
+% walk_for_direction(_, _, _, _, _, []).
 
 %-----------------Beetle move----------------------------------------
 % valid_beetle_moves(board(R,C,b,Color,Id,StackPosition),MovesList):-
