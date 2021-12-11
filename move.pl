@@ -249,6 +249,7 @@ move(board(R,C,s,Color,Id, StackPosition), R_new,C_new):-
 % ----------------Queen Move-------------------------------------
 
 valid_queen_moves(board(R,C,q,Color,Id,SP),MovesList):-
+    print('queen'),
     board(R,C,q,Color,Id,SP),
     not(insect_above_me(board(R,C,q,Color,Id,SP))),
     print('no insect above me. \n'),
@@ -257,7 +258,7 @@ valid_queen_moves(board(R,C,q,Color,Id,SP),MovesList):-
     address(Addr),
     adj_path_out(R,C,Addr,MovesList1),   
     get_adj_valid(board(R,C,q,Color,Id,SP),MovesList1,MovesList).
-
+valid_queen_moves(_,[]).
     
 move_queen(board(R,C,q,Color,Id, StackPosition),R_new,C_new):-
     board(R,C,q,Color,Id, StackPosition),
@@ -333,6 +334,7 @@ walk_for_direction(R, C, Type, DirectionRow, DirectionCol, ValidPos) :-
 % valid_beetle_moves(board(R,C,b,Color,Id,StackPosition),MovesList):-
 
 valid_beetle_moves(board(R,C,b,Color,Id,SP),MovesList):-
+    print('beetle'),
     board(R,C,b,Color,Id,SP),
     not(insect_above_me(board(R,C,b,Color,Id,SP))),
     print('no insect above me. \n'),
@@ -344,6 +346,7 @@ valid_beetle_moves(board(R,C,b,Color,Id,SP),MovesList):-
     get_ady_taken(R,C,Addr, AdjTakenId),
     get_location_by_id(AdjTakenId, AdjTakenLoc),
     append(AdjMoves,AdjTakenLoc,MovesList).
+valid_beetle_moves(_,[]).
 
 move_beetle(board(R,C,b,Color,Id, StackPosition),R_new,C_new):-
     board(R,C,b,Color,Id, StackPosition),
@@ -368,6 +371,7 @@ move_beetle(board(R,C,b,Color,Id, StackPosition),R_new,C_new):-
 
 %-----------------Ant move----------------------------------------
 valid_ant_moves(board(R,C,a,Color,Id,SP),MovesList):-
+    print('ant'),
     board(R,C,a,Color,Id,SP),
     not(insect_above_me(board(R,C,a,Color,Id,SP))),
     print('no insect above me. \n'),
@@ -385,6 +389,7 @@ valid_ant_moves(board(R,C,a,Color,Id,SP),MovesList):-
 valid_ant_moves(board(R,C,a,Color,Id,SP),[]).
 
 move_ant(board(R,C,a,Color,Id,SP),R_new,C_new):-
+    
     board(R,C,a,Color,Id,SP),
     valid_moves(board(R,C,a,Color,Id,SP),Moves),
     X = [R_new,C_new],
@@ -433,6 +438,7 @@ adj_connected_to_board([], []).
 %---------------------------------------------------------------------
 %-----------------------------Spider Move--------------------------
 valid_spider_moves(board(R,C,s,Color,Id,SP),MovesList):-
+    print('Spider'),
     board(R,C,s,Color,Id,SP),
     not(insect_above_me(board(R,C,s,Color,Id,SP))),
     print('no insect above me. \n'),
