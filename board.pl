@@ -24,15 +24,16 @@ count(0). % variable auxiliar que se usa en el metodo is_valid_board
 % get adjacents to (R, C); but valid adjacents with card into. Return [ID] of adjacents.
 get_ady_taken(_, _, [], []) :- !.
 
-get_ady_taken(OldRow, OldColumn, [R, C | T], [Id | T1]) :-
+get_ady_taken(OldRow, OldColumn, [R, C | T], Ans) :-
     NewRow is OldRow + R,
     NewCol is OldColumn + C,
-    board(NewRow, NewCol, _, _, Id,_),
-    get_ady_taken(OldRow, OldColumn, T, T1),
+    findall(Id, board(NewRow, NewCol, _, _, Id, _), Neighbors),
+    get_ady_taken(OldRow, OldColumn, T, TempAns),
+    append(TempAns, Neighbors, Ans),
     !.
 
-get_ady_taken(OldRow, OldColumn, [_, _ | T], T1) :-
-    get_ady_taken(OldRow, OldColumn, T, T1).
+get_ady_taken(OldRow, OldColumn, [_, _ | T], Ans) :-
+    get_ady_taken(OldRow, OldColumn, T, Ans).
 
 
 get_ady_free(_, _, [], []) :- !.

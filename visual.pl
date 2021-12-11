@@ -94,6 +94,7 @@ click_event_handler(Window, Pos) :-
     aux_board(Name, _, X, Y),
     save_drawed_positions(Name, X, Y, 0, DrawedPositions),
     draw_arrows(Window).
+    % draw_board_extra(Window).
     
 
 % si se va a mover una carta del tablero
@@ -111,6 +112,8 @@ click_event_handler(Window, Pos) :-
     save_drawed_positions(Name, X, Y, 1, DrawedPositions),
 
     draw_arrows(Window).
+    
+    % draw_board_extra(Window).
 
 
 % se usa para manejar las cartas que estan fuera del tablero 
@@ -172,22 +175,35 @@ handle_card(Window, X, Y, _) :-
 
     make_entry_in_board(R, C, Name, Color,  SP, X, Y),
 
-    draw_arrows(Window), 
+    draw_arrows(Window),
+
+    draw_board_extra(Window),
     !.
 
 % para mover una carta del tablero 
 handle_card(Window, X, Y, DrawedPositions) :-
     get_board_position_with_pixeles(X, Y, R, C),
 
-    board(R, C, Type, Color, Id, SP),
+    findall([Sp, Id], board(R, C, _, _, Id, Sp), IdsInPosition),
+    % findall([Sp, Id], board(_, _, _, _, Id, Sp), List),
+    make_negatives(IdsInPosition, NewIdsInPosition),
+    msort(NewIdsInPosition, [[_, NewId] | _]),
 
-    valid_moves(board(R, C, Type, Color, Id, SP), DrawedPositionsBoardCoordenates),
+    board(NR, NC, Type, Color, NewId, SP),
+
+    valid_moves(board(NR, NC, Type, Color, NewId, SP), DrawedPositionsBoardCoordenates),
 
     draw_list_aux(Window, DrawedPositionsBoardCoordenates, point(X, Y), DrawedPositions).
 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% UTILS %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
+make_negatives([], [])  :- !.
+
+make_negatives([[Sp, Id] | T], [[NewSp, Id] | TT]) :-
+    NewSp is Sp * -1,
+    make_negatives(T, TT).
+    
 get_stack_position(R, C, SP) :-
     board(R, C, _, _, _, TSP),
     SP is TSP + 1,
@@ -250,6 +266,7 @@ get_card_clicked(ClickPosition, Ans) :-
     
 
 get_card_clicked_aux([[SX, SY | _] | _], ClickPosition, [AnsX, AnsY]) :-
+    % custom_sort_for_draw_board_extra([_, Id]),
     get(ClickPosition, x, X),
     get(ClickPosition, y, Y),
     size_cards(SZ),
@@ -372,7 +389,13 @@ choose_card_to_move(X, Y, Name) :-
     !.
 
 choose_card_to_move(X, Y, Name) :-
-    card_place(Name, _, X, Y),
+    get_board_position_with_pixeles(X, Y, R, C),
+    
+    findall([Sp, Id], board(R, C, _, _, Id, Sp), IdsInPosition),
+    make_negatives(IdsInPosition, NewIdsInPosition),
+    msort(NewIdsInPosition, [[_, NewId] | _]),
+    
+    card_place(Name, NewId, _, _),
     !.
 
 % la carta que hay que quitar es de las que estan afuera del tablero para seleccionar
@@ -390,12 +413,22 @@ retract_from_aux_board_or_remove_from_board(Window, Name, X, Y, _) :-
 
     % map_from_compuest_type(Name, Type),
 
+    % Type \= g,
+
     retract(board(_, _, _, _, Id, _)),
     retract(card_place(_, Id, _, _)),
 
     fix_last_used_id(),
 
     new_image(Window, _, white, point(X, Y)).
+
+
+% retract_from_aux_board_or_remove_from_board(Window, Name, X, Y, _) :-
+%     card_place(Name, _, X, Y),
+
+%     fix_last_used_id(),
+
+%     new_image(Window, _, white, point(X, Y)).
 
 filter_drawed_positions([], _, []) :- !.
 
@@ -442,3 +475,28 @@ get_valid_insert_pos_ia_aux([Id | T], ValidsPos) :-
     where_place_piece(R, C, Color, PathOut),
     get_valid_insert_pos_ia_aux(T, Aux2DrawedPositions),
     append(PathOut, Aux2DrawedPositions, ValidsPos).
+
+draw_board_extra(Window) :- 
+    custom_sort_for_draw_board_extra(Sorted),
+    findall(Id, (member([_, Id], Sorted), board(_, _, _, _, Id, _)), InBoard),
+    draw_board_extra_aux(Window, InBoard).
+
+custom_sort_for_draw_board_extra(Sorted):-
+    findall([Sp, Id], board(_, _, _, _, Id, Sp), List),
+    msort(List, Sorted).
+
+draw_board_extra_aux(_, []) :- !.
+
+draw_board_extra_aux(Window, [Id | T]) :-
+    start_pos(StartPos),
+    get(StartPos, x, SX),
+    get(StartPos, y, SY),
+    board(R, C, Name, Color, Id, _),
+    X is (R / 2) * 55 + SX,
+    Y is C * 55 + SY,
+    % X is TempX + OldX,
+    % Y is TempY + OldY,
+    % aqui siempre se pinta valid xq siempre vamos a pintar la lista de las posiciones validas
+    atom_concat(Name, Color, NewCard),
+    new_image(Window, _, NewCard, point(X, Y)),
+    draw_board_extra_aux(Window, T).
