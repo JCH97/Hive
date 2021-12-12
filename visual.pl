@@ -638,3 +638,18 @@ make_ia_description() :-
     * Le envia el mensaje open al dialogo para que cree y muestre la ventana.
     */
     send(D, open).
+
+
+init() :-
+    new(D, dialog('Choose one option')),
+    send_list(D, append, [
+            button('User vs User', and(
+                        message(@prolog, start),
+                        message(D, destroy))
+                ),
+            button('User vs IA', and(
+                        message(@prolog, game_ia),
+                        message(D, destroy))
+                    )
+        ]),
+    send(D, open).
