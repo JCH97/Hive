@@ -7,7 +7,7 @@
 :- dynamic [board/6, plays/1, turn/1].
 
 %% hormigas => a        arannas => s        mosquito => m
-%% saltamontes => g     abeja reina => q
+%% saltamontes => g     abeja reina => q    ladybug => l
 %% escarabajos => b
 
 plays(0).

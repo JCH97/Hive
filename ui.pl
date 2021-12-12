@@ -4,7 +4,7 @@
 % dimentions: 55 x 55
 
 :- [
-    './move.pl',
+    './logic.pl',
     './board.pl',
     './IA.pl'
 ].
