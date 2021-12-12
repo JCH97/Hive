@@ -5,7 +5,8 @@
 
 :- [
     './move.pl',
-    './board.pl'
+    './board.pl',
+    './IA.pl'
 ].
 
 height(1000).
@@ -36,7 +37,8 @@ resource(rightArrow, image, image('right-arrow.jpg')).
 % drawed_positions X, Y => se usa para almacenar las posiciones que tienen la imagen valid, para despues saber cuales
     % cuales son las posiciones validas para el proximo click
 % clicked_card Name, X, Y, IsFromBoard => almacena el nombre y la posicion de la carta sobre la que se hizo clic y que por tanto es la proxima que hay que pintar en el tablero .
-:- dynamic [card_place/4, aux_board/4, drawed_positions/2, clicked_card/4].
+% ia => ia == 1 esta jugando la ia
+:- dynamic [card_place/4, aux_board/4, drawed_positions/2, clicked_card/4, ia/1, window/1].
 
 draw_test(Window) :- 
     new_image(Window, _, gb, point(455, 300)),
@@ -48,7 +50,7 @@ draw_test(Window) :-
     % new_image(Window, _, qb, point(427.5, 245)).
 
 
-start :-
+start(Window) :-
     width(W),
     height(H),
     new(Window, window("Hive", size(H, W))),
@@ -93,7 +95,10 @@ click_event_handler(Window, Pos) :-
     handle_card_out_game(Window, X, Y, Pos, DrawedPositions), 
     aux_board(Name, _, X, Y),
     save_drawed_positions(Name, X, Y, 0, DrawedPositions),
-    draw_arrows(Window).
+    draw_arrows(Window),
+
+    ia_game_play().
+
     % draw_board_extra(Window).
     
 
@@ -111,7 +116,9 @@ click_event_handler(Window, Pos) :-
     % aux_board(Name, _, X, Y),
     save_drawed_positions(Name, X, Y, 1, DrawedPositions),
 
-    draw_arrows(Window).
+    draw_arrows(Window),
+
+    ia_game_play().
     
     % draw_board_extra(Window).
 
@@ -500,3 +507,42 @@ draw_board_extra_aux(Window, [Id | T]) :-
     atom_concat(Name, Color, NewCard),
     new_image(Window, _, NewCard, point(X, Y)),
     draw_board_extra_aux(Window, T).
+
+ia_game() :-
+    start(Window),
+    assert(Window),
+    assert(ia(1)).
+
+ia_game_play() :-
+    ia(WithIa),
+    WithIa =:= 0,
+    !.
+
+ia_game_play() :-
+    % assert(ia(2)),
+    window(Window),
+    make_move_ia(Move),
+    game_aux_ia(Window, Move).
+
+game_aux_ia(Window, Move) :-
+    length(Move, L),
+    L =:= 2,
+    insert_card_into_board_ia(Move),
+    draw_board_extra(Window),
+    !.
+
+game_aux_ia(Window, board(_, _, Type, Color, Id, Sp), Col, Row) :-
+    retract(board(_, _, _, _, Id, _)),
+    retract(card_place(_, Id, _, _)),
+    assert(board(Row, Col, Type, Color, Id, Sp)),
+    fix_ids(),
+    draw_board_extra(Window),
+    !.
+    
+make_move_ia(Move) :-
+    functioning1(w, Move).
+
+insert_card_into_board_ia([board(R, C, Type, Color, Id, Sp), aux_board(Name, _, X, Y)]) :-
+    assert(board(R, C, Type, Color, Id, Sp)),
+    retract(aux_board(Name, Id, X, Y)),
+    fix_ids().

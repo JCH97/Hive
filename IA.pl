@@ -1,18 +1,17 @@
 :-[
     './board.pl' ,
     './move.pl',
-    './utils.pl',
-    './visual.pl'
+    './utils.pl'
  ].
  
- :- dynamic [board/6, plays/1, turn/1].
+%  :- dynamic [board/6, plays/1, turn/1].
  
  minimax_depth(3).
 
-aux_board(bw,w,0,1).
-aux_board(aw,w,0,2).
-aux_board(bb,b,0,3).
-aux_board(bw,w,0,4).
+% aux_board(bw,w,0,1).
+% aux_board(aw,w,0,2).
+% aux_board(bb,b,0,3).
+% aux_board(bw,w,0,4).
 % aux_board(gb,b,0,5).
 % aux_board(gw,w,0,6).
 % aux_board(qb,b,0,7).
@@ -21,8 +20,8 @@ aux_board(bw,w,0,4).
 % aux_board(sw,w,0,10).
 % aux_board(ab,b,0,11).
 
-board(0,0,q,w,1,0).
-board(1,1,q,b,2,0).
+% board(0,0,q,w,1,0).
+% board(1,1,q,b,2,0).
 % % board(-1,-1,b,w,3,0).
 
 % board(0, 0, q, w, 1, 0).
