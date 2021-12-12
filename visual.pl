@@ -493,13 +493,20 @@ get_valid_insert_pos_ia(Color, Ans) :-
     findall(Id, board(_, _, _, Color, Id, _), SameColorIds),
     get_valid_insert_pos_ia_aux(SameColorIds, Ans).
 
-get_valid_insert_pos_ia_aux([], [[0, 0]]) :- !.
+get_valid_insert_pos_ia_aux([], Ans) :- 
+    plays(P),
+    P =:= 0,
+    Ans = [[0, 0]],
+    !.
 
-get_valid_insert_pos_ia_aux(_, Ans) :- 
+
+get_valid_insert_pos_ia_aux([], Ans) :- 
     plays(P),
     P =:= 1,
     Ans = [[-1, -1]],
     !.
+
+get_valid_insert_pos_ia_aux([], []) :- !.
 
 get_valid_insert_pos_ia_aux([Id | T], ValidsPos) :-
     board(R, C, _, Color, Id, _),
