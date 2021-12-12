@@ -519,7 +519,7 @@ let_adj_do_their_thing_spider([[R,C] |Adj],AuxVisited,Level,Moves):-
 
 
 let_adj_do_their_thing_spider([[R,C] |Adj],AuxVisited,Level,Moves):-
-    let_adj_do_their_thing(Adj,AuxVisited,Level,Moves).
+    let_adj_do_their_thing_spider(Adj,AuxVisited,Level,Moves).
 
 let_adj_do_their_thing_spider([],AuxVisited,Level,[]).
 
@@ -547,8 +547,54 @@ no_backtrack_adj(AuxVisited,[H|AdjCommon], AdjValid):-
     no_backtrack_adj(AuxVisited,AdjCommon, AdjValid).
 no_backtrack_adj(AuxVisited,[], []).
 
+%---------------------LadyBug Move---------------------------------
+valid_ladybug_moves(board(R,C,l,Color,Id,SP),MovesList):-
+    print('LadyBug'),
+    board(R,C,l,Color,Id,SP),
+    not(insect_above_me(board(R,C,l,Color,Id,SP))),
+    print('no insect above me. \n'),
+    will_insect_not_break_hive(board(R,C,l,Color,Id,SP)),
+    print('will_insect_not_break_hive \n'),
+    address(Addr),
+    get_ady_taken(R,C,Addr,Ans),
+    get_location_by_id(Ans,AdjTaken),
+    AdjTaken \=[],
+
+    retract(board(R,C,l,Color,Id,SP)),
+    let_adj_do_their_thing_ladybug(AdjTaken,[[R,C]],2 ,MovesList),
+    assert(board(R,C,l,Color,Id,SP)).
+
+valid_ladybug_moves(board(R,C,s,Color,Id,SP),[]).
+
+let_adj_do_their_thing_ladybug([[R,C] |Adj],AuxVisited,3,Moves):-
+    not(member([R,C],AuxVisited)),    
+    address(Addr),
+    get_ady_free(R,C,Addr,AdjFree), 
+    let_adj_do_their_thing_ladybug(Adj,AuxVisited,3,Moves1),
+    append(AdjFree,Moves1,Move),
+    !.
+
+let_adj_do_their_thing_ladybug([[R,C] |Adj],AuxVisited,3,Moves):-
+    let_adj_do_their_thing_ladybug(Adj,AuxVisited,3,Moves).
+
+let_adj_do_their_thing_ladybug([[R,C] |Adj],AuxVisited,Level,Moves):-
+    not(member([R,C],AuxVisited)),    
+    address(Addr),
+    get_ady_taken(R,C,Addr,AdjTakenIds),
+    get_location_by_id(AdjTakenIds,AdjTaken1),
+    list_to_set(AdjTaken1,AdjTaken),
+    append([[R,C]],AuxVisited, AuxVisited1),
+    LevelAux is Level +1,
+    let_adj_do_their_thing_ladybug(AdjTaken,AuxVisited1, LevelAux, Moves1),
+    let_adj_do_their_thing_ladybug(Adj,AuxVisited,Level,Moves2),    
+    append(Moves1,Moves2,Moves).
 
 
+
+let_adj_do_their_thing_ladybug([[R,C] |Adj],AuxVisited,Level,Moves):-
+    let_adj_do_their_thing_ladybug(Adj,AuxVisited,Level,Moves).
+
+let_adj_do_their_thing_ladybug([],AuxVisited,Level,[]).
 % ----------------------------------------------- Mosquito Moves ------------------------------------------
 valid_mosquito_moves(board(R, C, m, Color, Id, StackPosition), M) :-
     
