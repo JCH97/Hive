@@ -560,18 +560,32 @@ valid_ladybug_moves(board(R,C,l,Color,Id,SP),MovesList):-
     get_location_by_id(Ans,AdjTaken),
     AdjTaken \=[],
 
-    retract(board(R,C,l,Color,Id,SP)),
-    let_adj_do_their_thing_ladybug(AdjTaken,[[R,C]],2 ,MovesList),
-    assert(board(R,C,l,Color,Id,SP)).
+    % retract(board(R,C,l,Color,Id,SP)),
+    let_adj_do_their_thing_ladybug(AdjTaken,[[R,C]],2 ,Moves12),
+    list_to_set(Moves12,MovesList).
+    % assert(board(R,C,l,Color,Id,SP)).
 
-valid_ladybug_moves(board(R,C,s,Color,Id,SP),[]).
+valid_ladybug_moves(board(R,C,l,Color,Id,SP),[]).
+
+move_ladybug(board(R,C,l,Color,Id,SP),R_new,C_new):-
+    board(R,C,l,Color,Id,SP),
+    valid_moves(board(R,C,l,Color,Id,SP),Moves),
+    X = [R_new,C_new],
+    print(Moves),
+    member(X,Moves),
+    retract(board(R,C,l,Color,Id, StackPosition)),
+    assert(board(R_new,C_new,l,Color,Id, SP)),
+    !.
+move_ladybug(board(R,C,l,Color,Id,SP),R_new,C_new):-
+    format('Invalid move'),
+    !,fail.
 
 let_adj_do_their_thing_ladybug([[R,C] |Adj],AuxVisited,3,Moves):-
     not(member([R,C],AuxVisited)),    
     address(Addr),
     get_ady_free(R,C,Addr,AdjFree), 
     let_adj_do_their_thing_ladybug(Adj,AuxVisited,3,Moves1),
-    append(AdjFree,Moves1,Move),
+    append(AdjFree,Moves1,Moves),
     !.
 
 let_adj_do_their_thing_ladybug([[R,C] |Adj],AuxVisited,3,Moves):-
