@@ -10,11 +10,13 @@
 ].
 
 height(1000).
-width(600).
+width(655).
 size_cards(55).
 start_pos(point(455, 300)).
 left_arrow_pos(55, 0).
 right_arrow_pos(890, 0).
+ia(0).
+block(0).
 
 resource(bw, image, image('bw-reduce.jpg')).
 resource(aw, image, image('aw-reduce.jpg')).
@@ -27,10 +29,14 @@ resource(qw, image, image('qw-reduce.jpg')).
 resource(sb, image, image('sb-reduce.jpg')).
 resource(sw, image, image('sw-reduce.jpg')).
 resource(ab, image, image('ab-reduce.jpg')).
+resource(mb, image, image('mb-reduce.jpg')).
+resource(mw, image, image('mw-reduce.jpg')).
 resource(white, image, image('white.jpg')).
 resource(valid, image, image('valid.jpg')).
 resource(leftArrow, image, image('left-arrow.jpg')).
 resource(rightArrow, image, image('right-arrow.jpg')).
+resource(blackWin, image, image('black-win.jpg')).
+resource(whiteWin, image, image('white-win.jpg')).
 
 % card-place => name, Id, X, Y => para almacenar las cartas puestas en el tablero
 % aux_board => name, Color, X, Y => para almacenar las cartas con las que se juega
@@ -38,7 +44,8 @@ resource(rightArrow, image, image('right-arrow.jpg')).
     % cuales son las posiciones validas para el proximo click
 % clicked_card Name, X, Y, IsFromBoard => almacena el nombre y la posicion de la carta sobre la que se hizo clic y que por tanto es la proxima que hay que pintar en el tablero .
 % ia => ia == 1 esta jugando la ia
-:- dynamic [card_place/4, aux_board/4, drawed_positions/2, clicked_card/4, ia/1, window/1].
+% block => bloquea el clic
+:- dynamic [card_place/4, aux_board/4, drawed_positions/2, clicked_card/4, ia/1, window/1, block/1].
 
 draw_test(Window) :- 
     new_image(Window, _, gb, point(455, 300)),
@@ -50,10 +57,11 @@ draw_test(Window) :-
     % new_image(Window, _, qb, point(427.5, 245)).
 
 
-start(Window) :-
+start() :-
     width(W),
     height(H),
     new(Window, window("Hive", size(H, W))),
+    assert(window(Window)),
     send(Window, open),
     draw_board(Window),
     draw_arrows(Window),
@@ -81,6 +89,10 @@ new_image(Win, Fig, Imagen, Pos) :-
 
 % si hay que poner una carta de las que hay afuera del tablero
 click_event_handler(Window, Pos) :-
+
+    block(B),
+    B =:= 0,
+
     get_card_clicked(Pos, [X, Y | _]),
     
     % width(W),
@@ -95,8 +107,10 @@ click_event_handler(Window, Pos) :-
     handle_card_out_game(Window, X, Y, Pos, DrawedPositions), 
     aux_board(Name, _, X, Y),
     save_drawed_positions(Name, X, Y, 0, DrawedPositions),
-    draw_arrows(Window).
+    draw_arrows(Window),
     
+    check_end_game().
+
     % ia_game_play().
 
     % draw_board_extra(Window).
@@ -104,6 +118,10 @@ click_event_handler(Window, Pos) :-
 
 % si se va a mover una carta del tablero
 click_event_handler(Window, Pos) :-
+
+    block(B),
+    B =:= 0,
+
     get_card_clicked(Pos, [X, Y | _]),
     
     handle_card(Window, X, Y, DrawedPositions), 
@@ -116,7 +134,9 @@ click_event_handler(Window, Pos) :-
     % aux_board(Name, _, X, Y),
     save_drawed_positions(Name, X, Y, 1, DrawedPositions),
 
-    draw_arrows(Window).
+    draw_arrows(Window),
+    
+    check_end_game().
 
     % ia_game_play().
     
@@ -293,10 +313,10 @@ get_card_clicked_aux([[_, _ | _] | T], ClickPosition, Ans) :-
 draw_board(Window) :-
     size_cards(SZ),
     draw_board_white_cards(Window, SZ, [
-            qw, aw, aw, aw, gw, gw, gw, bw, bw, sw, sw
+            qw, aw, aw, aw, gw, gw, gw, bw, bw, sw, sw, mw, mw
         ], 0, 0),
     draw_board_black_cards(Window, SZ, [
-            qb, ab, ab, ab, gb, gb, gb, bb, bb, sb, sb
+            qb, ab, ab, ab, gb, gb, gb, bb, bb, sb, sb, mb, mb
         ], 945, 0).
 
 draw_board_white_cards(_, _, [], _, _) :- !.
@@ -475,13 +495,20 @@ get_valid_insert_pos_ia(Color, Ans) :-
     findall(Id, board(_, _, _, Color, Id, _), SameColorIds),
     get_valid_insert_pos_ia_aux(SameColorIds, Ans).
 
-get_valid_insert_pos_ia_aux([], [[0, 0]]) :- !.
+get_valid_insert_pos_ia_aux([], Ans) :- 
+    plays(P),
+    P =:= 0,
+    Ans = [[0, 0]],
+    !.
 
-get_valid_insert_pos_ia_aux(Ids, Ans) :- 
-    length(Ids, L),
-    L =:= 1,
+
+get_valid_insert_pos_ia_aux([], Ans) :- 
+    plays(P),
+    P =:= 1,
     Ans = [[-1, -1]],
     !.
+
+get_valid_insert_pos_ia_aux([], []) :- !.
 
 get_valid_insert_pos_ia_aux([Id | T], ValidsPos) :-
     board(R, C, _, Color, Id, _),
@@ -515,9 +542,11 @@ draw_board_extra_aux(Window, [Id | T]) :-
     draw_board_extra_aux(Window, T).
 
 ia_game() :-
-    start(Window),
-    assert(Window),
-    assert(ia(1)).
+    start(),
+    % assert(Window),
+    retract(ia(_)),
+    assert(ia(1)),
+    make_ia_description().
 
 ia_game_play() :-
     ia(WithIa),
@@ -546,9 +575,66 @@ game_aux_ia(Window, board(_, _, Type, Color, Id, Sp), Col, Row) :-
     !.
     
 make_move_ia(Move) :-
-    functioning1(w, Move).
+    functioning1(b, Move).
 
 insert_card_into_board_ia([board(R, C, Type, Color, Id, Sp), aux_board(Name, _, X, Y)]) :-
     assert(board(R, C, Type, Color, Id, Sp)),
     retract(aux_board(Name, Id, X, Y)),
     fix_ids().
+
+check_end_game() :-
+    end_game(Winner),
+    check_end_game_aux(Winner).
+
+check_end_game_aux(Winner) :-
+    Winner = n,
+    !.
+
+% whites win
+check_end_game_aux(Winner) :-
+    Winner = w,
+    retract(block(_)),
+    assert(block(1)),
+    window(W),
+    new_image(W, _, whiteWin, point(0, 270)),
+    !.
+
+% blacks win
+check_end_game_aux(Winner) :-
+    Winner = b,
+    retract(block(_)),
+    assert(block(1)),
+    window(W),
+    new_image(W, _, blackWin, point(700, 270)),
+    !.
+
+make_ia_description() :-
+    /*
+    * Crea el objeto dialogo en la variable D
+    */
+    new(D, dialog("IA info")),
+    /* 
+    * Crea el objeto boton almacenandolo en la variable @boton de tal forma 
+    * que al pulsar sobre el boton libere la memoria y cierre la ventana)
+    */
+
+    send(D, display,
+        new(@tx, text("
+            En el modo IA, el juego se realiza entre un jugador y la PC, \n
+            el jugador siempre usara las fichas blancas y la pc las negras, \n
+            el jugador juega primero.
+            ")), point(0, 0)), 
+
+    % new(@boton, button("Close",
+    % and(
+    %     message(D, destroy),
+    %     message(D, free),
+    %     message(@boton, free)))),
+    /*
+    * Inserta el botón en el diálogo
+    */
+    % send(D, append(@boton)),
+    /*
+    * Le envia el mensaje open al dialogo para que cree y muestre la ventana.
+    */
+    send(D, open).

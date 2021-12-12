@@ -6,7 +6,7 @@
 
 :- dynamic [board/6, plays/1, turn/1].
 
-%% hormigas => a         arannas => s
+%% hormigas => a        arannas => s        mosquito => m
 %% saltamontes => g     abeja reina => q
 %% escarabajos => b
 
@@ -249,6 +249,10 @@ valid_moves(board(R,C,s,Color,Id, StackPosition),Moves):-
     print(MovesList),    
     list_to_set(MovesList,Moves),!.
 
+valid_moves(board(R, C, m, Color, Id, StackPosition), Moves) :-
+    valid_mosquito_moves(board(R, C, m, Color, Id, StackPosition), M),
+    list_to_set(M, Moves),
+    !.
 
 move(board(R, C, q, Color, Id, StackPosition), R_new, C_new):-
     move_queen(board(R, C, q, Color, Id, StackPosition), R_new, C_new), !.
@@ -305,7 +309,7 @@ valid_g_move(board(R, C, g, Color, Id, StackPosition), ValidPos) :-
     not(insect_above_me(board(R, C, g, Color, Id, StackPosition))),
     format("no insect above me. \n"),
 
-    will_insect_not_break_hive(board(R,C,g,Color,Id,SP)),
+    will_insect_not_break_hive(board(R,C,g,Color,Id,StackPosition)),
 
     address(Address),
     get_ady_taken(R, C, Address, Adj),
@@ -316,7 +320,7 @@ valid_g_move(board(R, C, g, Color, Id, StackPosition), ValidPos) :-
 valid_g_move_aux(board(R, C, g, Color, Id, StackPosition), [HAdj | TAdj], ValidPos) :-
     board(R, C, g, Color, Id, StackPosition),
 
-    board(TR, TC, TType, TColor, HAdj, TStackPosition),
+    board(TR, TC, _, _, HAdj, _),
 
     DirectionRow is TR - R,
     DirectionCol is TC - C,
@@ -325,7 +329,7 @@ valid_g_move_aux(board(R, C, g, Color, Id, StackPosition), [HAdj | TAdj], ValidP
 
     walk_for_direction(TR, TC, g, DirectionRow, DirectionCol, AuxValidPos1),
 
-    print(AuxValidPos),
+    % print(AuxValidPos),
 
     valid_g_move_aux(board(R, C, g, Color, Id, StackPosition), TAdj, AuxValidPos2),
 
@@ -591,6 +595,48 @@ let_adj_do_their_thing_ladybug([[R,C] |Adj],AuxVisited,Level,Moves):-
     let_adj_do_their_thing_ladybug(Adj,AuxVisited,Level,Moves).
 
 let_adj_do_their_thing_ladybug([],AuxVisited,Level,[]).
+% ----------------------------------------------- Mosquito Moves ------------------------------------------
+valid_mosquito_moves(board(R, C, m, Color, Id, StackPosition), M) :-
+    
+    not(insect_above_me(board(R, C, m, Color, Id, StackPosition))),
+    
+    format("no insect above me. \n"),
+
+    will_insect_not_break_hive(board(R, C, m, Color, Id, StackPosition)),
+
+    address(Addr),
+
+    get_ady_taken(R, C, Addr, AdjIds),
+
+    remove_m_from_AdjIds(AdjIds, FilterAdjIds),
+
+    valid_mosquito_moves_aux(FilterAdjIds, M).
+
+valid_mosquito_moves_aux([], []) :- !.
+
+valid_mosquito_moves_aux([Id | T], M) :-
+    board(R, C, Type, Color, Id, Sp),
+
+    valid_moves(board(R, C, Type, Color, Id, Sp), AdjValidMoves),
+
+    valid_mosquito_moves_aux(T, TM),
+
+    append(AdjValidMoves, TM, M),
+    !.
+
+remove_m_from_AdjIds([], []) :- !.
+
+remove_m_from_AdjIds([Id | T], FilterAdjIds) :-
+    board(_, _, Type, _, Id, _),
+
+    Type = m,
+
+    remove_m_from_AdjIds(T, FilterAdjIds),
+    !.
+
+remove_m_from_AdjIds([Id | T], [Id | TT]) :-
+    remove_m_from_AdjIds(T, TT).
+
 %------------------------------------------------------------------
 
     
