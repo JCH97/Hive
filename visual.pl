@@ -620,9 +620,10 @@ make_ia_description() :-
 
     send(D, display,
         new(@tx, text("
-            En el modo IA, el juego se realiza entre un jugador y la PC, \n
-            el jugador siempre usara las fichas blancas y la pc las negras, \n
-            el jugador juega primero.
+            En el modo IA:
+            - El juego se realiza entre un usuario y la PC, \n
+            - El usuario siempre usará las fichas blancas y la PC las negras, \n
+            - El usuario juega primero.
             ")), point(0, 0)), 
 
     % new(@boton, button("Close",
@@ -648,7 +649,7 @@ init() :-
                         message(D, destroy))
                 ),
             button('User vs IA', and(
-                        message(@prolog, game_ia),
+                        message(@prolog, ia_game),
                         message(D, destroy))
                     )
         ]),
