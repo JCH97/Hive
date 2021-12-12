@@ -31,6 +31,8 @@ resource(sw, image, image('sw-reduce.jpg')).
 resource(ab, image, image('ab-reduce.jpg')).
 resource(mb, image, image('mb-reduce.jpg')).
 resource(mw, image, image('mw-reduce.jpg')).
+resource(lw, image, image('lw-reduce.jpg')).
+resource(lb, image, image('lb-reduce.jpg')).
 resource(white, image, image('white.jpg')).
 resource(valid, image, image('valid.jpg')).
 resource(leftArrow, image, image('left-arrow.jpg')).
@@ -60,8 +62,8 @@ draw_test(Window) :-
 white_cards([qw, aw, aw, aw, gw, gw, gw, bw, bw, sw, sw]).
 black_cards([qb, ab, ab, ab, gb, gb, gb, bb, bb, sb, sb]).
 
-white_cards_extensions([qw, aw, aw, aw, gw, gw, gw, bw, bw, sw, sw, mw, mw]).
-black_cards_extensions([qb, ab, ab, ab, gb, gb, gb, bb, bb, sb, sb, mb, mb]).
+white_cards_extensions([qw, aw, aw, aw, gw, gw, gw, bw, bw, sw, sw, mw, lw]).
+black_cards_extensions([qb, ab, ab, ab, gb, gb, gb, bb, bb, sb, sb, mb, lb]).
 
 simple_start() :-
     white_cards(Wc),
