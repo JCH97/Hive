@@ -10,7 +10,7 @@
 ].
 
 height(1000).
-width(600).
+width(655).
 size_cards(55).
 start_pos(point(455, 300)).
 left_arrow_pos(55, 0).
@@ -29,6 +29,8 @@ resource(qw, image, image('qw-reduce.jpg')).
 resource(sb, image, image('sb-reduce.jpg')).
 resource(sw, image, image('sw-reduce.jpg')).
 resource(ab, image, image('ab-reduce.jpg')).
+resource(mb, image, image('mb-reduce.jpg')).
+resource(mw, image, image('mw-reduce.jpg')).
 resource(white, image, image('white.jpg')).
 resource(valid, image, image('valid.jpg')).
 resource(leftArrow, image, image('left-arrow.jpg')).
@@ -311,10 +313,10 @@ get_card_clicked_aux([[_, _ | _] | T], ClickPosition, Ans) :-
 draw_board(Window) :-
     size_cards(SZ),
     draw_board_white_cards(Window, SZ, [
-            qw, aw, aw, aw, gw, gw, gw, bw, bw, sw, sw
+            qw, aw, aw, aw, gw, gw, gw, bw, bw, sw, sw, mw, mw
         ], 0, 0),
     draw_board_black_cards(Window, SZ, [
-            qb, ab, ab, ab, gb, gb, gb, bb, bb, sb, sb
+            qb, ab, ab, ab, gb, gb, gb, bb, bb, sb, sb, mb, mb
         ], 945, 0).
 
 draw_board_white_cards(_, _, [], _, _) :- !.
@@ -543,7 +545,8 @@ ia_game() :-
     start(),
     % assert(Window),
     retract(ia(_)),
-    assert(ia(1)).
+    assert(ia(1)),
+    make_ia_description().
 
 ia_game_play() :-
     ia(WithIa),
@@ -572,7 +575,7 @@ game_aux_ia(Window, board(_, _, Type, Color, Id, Sp), Col, Row) :-
     !.
     
 make_move_ia(Move) :-
-    functioning1(w, Move).
+    functioning1(b, Move).
 
 insert_card_into_board_ia([board(R, C, Type, Color, Id, Sp), aux_board(Name, _, X, Y)]) :-
     assert(board(R, C, Type, Color, Id, Sp)),
@@ -604,3 +607,34 @@ check_end_game_aux(Winner) :-
     window(W),
     new_image(W, _, blackWin, point(700, 270)),
     !.
+
+make_ia_description() :-
+    /*
+    * Crea el objeto dialogo en la variable D
+    */
+    new(D, dialog("IA info")),
+    /* 
+    * Crea el objeto boton almacenandolo en la variable @boton de tal forma 
+    * que al pulsar sobre el boton libere la memoria y cierre la ventana)
+    */
+
+    send(D, display,
+        new(@tx, text("
+            En el modo IA, el juego se realiza entre un jugador y la PC, \n
+            el jugador siempre usara las fichas blancas y la pc las negras, \n
+            el jugador juega primero.
+            ")), point(0, 0)), 
+
+    % new(@boton, button("Close",
+    % and(
+    %     message(D, destroy),
+    %     message(D, free),
+    %     message(@boton, free)))),
+    /*
+    * Inserta el botón en el diálogo
+    */
+    % send(D, append(@boton)),
+    /*
+    * Le envia el mensaje open al dialogo para que cree y muestre la ventana.
+    */
+    send(D, open).

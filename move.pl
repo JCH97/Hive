@@ -550,7 +550,14 @@ no_backtrack_adj(AuxVisited,[], []).
 
 
 % ----------------------------------------------- Mosquito Moves ------------------------------------------
-valid_mosquito_moves(board(R, C, m, _, _, _), M) :-
+valid_mosquito_moves(board(R, C, m, Color, Id, StackPosition), M) :-
+    
+    not(insect_above_me(board(R, C, m, Color, Id, StackPosition))),
+    
+    format("no insect above me. \n"),
+
+    will_insect_not_break_hive(board(R, C, m, Color, Id, StackPosition)),
+
     address(Addr),
 
     get_ady_taken(R, C, Addr, AdjIds),
