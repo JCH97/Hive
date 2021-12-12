@@ -254,6 +254,11 @@ valid_moves(board(R, C, m, Color, Id, StackPosition), Moves) :-
     list_to_set(M, Moves),
     !.
 
+valid_moves(board(R, C, l, Color, Id, StackPosition), Moves) :-
+    valid_ladybug_moves(board(R, C, l, Color, Id, StackPosition), M),
+    list_to_set(M, Moves),
+    !.
+
 move(board(R, C, q, Color, Id, StackPosition), R_new, C_new):-
     move_queen(board(R, C, q, Color, Id, StackPosition), R_new, C_new), !.
 
@@ -266,6 +271,10 @@ move(board(R,C,a,Color,Id, StackPosition), R_new,C_new):-
 
 move(board(R,C,s,Color,Id, StackPosition), R_new,C_new):-
     move_spider(board(R,C,s,Color,Id, StackPosition),R_new,C_new),!.
+
+move(board(R,C,l,Color,Id, StackPosition), R_new,C_new):-
+    move_ladybug(board(R,C,l,Color,Id, StackPosition),R_new,C_new),!.
+
 
 % move(board(R,C,g,Color,Id, StackPosition), R_new,C_new):-
 %     move_grasshopper(board(R,C,g,Color,Id, StackPosition),R_new,C_new),!.
