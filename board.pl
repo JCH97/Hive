@@ -38,15 +38,17 @@ get_ady_taken(OldRow, OldColumn, [_, _ | T], Ans) :-
 
 get_ady_free(_, _, [], []) :- !.
 
-get_ady_free(OldRow, OldColumn, [R, C | T], [Id | T1]) :-
+get_ady_free(OldRow, OldColumn, [R, C | T], Ans) :-
     NewRow is OldRow + R,
     NewCol is OldColumn + C,
-    not(board(NewRow, NewCol, _, _, Id,_)),
-    get_ady_free(OldRow, OldColumn, T, T1),
+    not(board(NewRow, NewCol, _, _, _,_)),
+    get_ady_free(OldRow, OldColumn, T, AnsTemp),
+    append([[NewRow, NewCol]], AnsTemp, Ans),
     !.
 
-get_ady_free(OldRow, OldColumn, [_, _ | T], T1) :-
-    get_ady_free(OldRow, OldColumn, T, T1).
+get_ady_free(OldRow, OldColumn, [_, _ | T], Ans) :-
+    get_ady_free(OldRow, OldColumn, T, Ans),
+    !.
 
 get_id(Id) :-
     board(_, _, _, _, Id, _),
