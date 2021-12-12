@@ -305,7 +305,7 @@ valid_g_move(board(R, C, g, Color, Id, StackPosition), ValidPos) :-
     not(insect_above_me(board(R, C, g, Color, Id, StackPosition))),
     format("no insect above me. \n"),
 
-    will_insect_not_break_hive(board(R,C,g,Color,Id,SP)),
+    will_insect_not_break_hive(board(R,C,g,Color,Id,StackPosition)),
 
     address(Address),
     get_ady_taken(R, C, Address, Adj),
@@ -316,7 +316,7 @@ valid_g_move(board(R, C, g, Color, Id, StackPosition), ValidPos) :-
 valid_g_move_aux(board(R, C, g, Color, Id, StackPosition), [HAdj | TAdj], ValidPos) :-
     board(R, C, g, Color, Id, StackPosition),
 
-    board(TR, TC, TType, TColor, HAdj, TStackPosition),
+    board(TR, TC, _, _, HAdj, _),
 
     DirectionRow is TR - R,
     DirectionCol is TC - C,
@@ -325,7 +325,7 @@ valid_g_move_aux(board(R, C, g, Color, Id, StackPosition), [HAdj | TAdj], ValidP
 
     walk_for_direction(TR, TC, g, DirectionRow, DirectionCol, AuxValidPos1),
 
-    print(AuxValidPos),
+    % print(AuxValidPos),
 
     valid_g_move_aux(board(R, C, g, Color, Id, StackPosition), TAdj, AuxValidPos2),
 
