@@ -95,9 +95,9 @@ click_event_handler(Window, Pos) :-
     handle_card_out_game(Window, X, Y, Pos, DrawedPositions), 
     aux_board(Name, _, X, Y),
     save_drawed_positions(Name, X, Y, 0, DrawedPositions),
-    draw_arrows(Window),
-
-    ia_game_play().
+    draw_arrows(Window).
+    
+    % ia_game_play().
 
     % draw_board_extra(Window).
     
@@ -116,9 +116,9 @@ click_event_handler(Window, Pos) :-
     % aux_board(Name, _, X, Y),
     save_drawed_positions(Name, X, Y, 1, DrawedPositions),
 
-    draw_arrows(Window),
+    draw_arrows(Window).
 
-    ia_game_play().
+    % ia_game_play().
     
     % draw_board_extra(Window).
 
@@ -475,7 +475,13 @@ get_valid_insert_pos_ia(Color, Ans) :-
     findall(Id, board(_, _, _, Color, Id, _), SameColorIds),
     get_valid_insert_pos_ia_aux(SameColorIds, Ans).
 
-get_valid_insert_pos_ia_aux([], []) :- !.
+get_valid_insert_pos_ia_aux([], [[0, 0]]) :- !.
+
+get_valid_insert_pos_ia_aux(Ids, Ans) :- 
+    length(Ids, L),
+    L =:= 1,
+    Ans = [[-1, -1]],
+    !.
 
 get_valid_insert_pos_ia_aux([Id | T], ValidsPos) :-
     board(R, C, _, Color, Id, _),

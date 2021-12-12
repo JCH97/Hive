@@ -15,6 +15,26 @@ plays(0).
 % board(0, 0, gb, b, 1, 0).
 
 % where_place_piece
+
+end_game(Winner) :-
+    findall(Id, board(_, _, q, _, Id, _), Queens),
+    end_game_aux(Queens, Winner).
+
+end_game_aux([], n) :- !.
+
+end_game_aux([Id | _], Winner) :-
+    board(R, C, _, Color, Id, _),
+    address(Addr),
+    get_ady_taken(R, C, Addr, Ans),
+    length(Ans, L),
+    L >= 6,
+    Winner = Color,
+    !.
+
+end_game_aux([_ | T], Winner) :-
+    end_game_aux(T, Winner).
+
+
 where_place_piece(R, C, Color, Ans) :- 
     address(Addr),
     adj_path_out(R, C, Addr, TempAns),
