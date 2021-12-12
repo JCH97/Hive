@@ -6,7 +6,7 @@
 
 :- dynamic [board/6, plays/1, turn/1].
 
-%% hormigas => a         arannas => s
+%% hormigas => a        arannas => s        mosquito => m
 %% saltamontes => g     abeja reina => q
 %% escarabajos => b
 
@@ -249,6 +249,10 @@ valid_moves(board(R,C,s,Color,Id, StackPosition),Moves):-
     print(MovesList),    
     list_to_set(MovesList,Moves),!.
 
+valid_moves(board(R, C, m, Color, Id, StackPosition), Moves) :-
+    valid_mosquito_moves(board(R, C, m, Color, Id, StackPosition), M),
+    list_to_set(M, Moves),
+    !.
 
 move(board(R, C, q, Color, Id, StackPosition), R_new, C_new):-
     move_queen(board(R, C, q, Color, Id, StackPosition), R_new, C_new), !.
@@ -544,6 +548,41 @@ no_backtrack_adj(AuxVisited,[H|AdjCommon], AdjValid):-
 no_backtrack_adj(AuxVisited,[], []).
 
 
+
+% ----------------------------------------------- Mosquito Moves ------------------------------------------
+valid_mosquito_moves(board(R, C, m, _, _, _), M) :-
+    address(Addr),
+
+    get_ady_taken(R, C, Addr, AdjIds),
+
+    remove_m_from_AdjIds(AdjIds, FilterAdjIds),
+
+    valid_mosquito_moves_aux(FilterAdjIds, M).
+
+valid_mosquito_moves_aux([], []) :- !.
+
+valid_mosquito_moves_aux([Id | T], M) :-
+    board(R, C, Type, Color, Id, Sp),
+
+    valid_moves(board(R, C, Type, Color, Id, Sp), AdjValidMoves),
+
+    valid_mosquito_moves_aux(T, TM),
+
+    append(AdjValidMoves, TM, M),
+    !.
+
+remove_m_from_AdjIds([], []) :- !.
+
+remove_m_from_AdjIds([Id | T], FilterAdjIds) :-
+    board(_, _, Type, _, Id, _),
+
+    Type = m,
+
+    remove_m_from_AdjIds(T, FilterAdjIds),
+    !.
+
+remove_m_from_AdjIds([Id | T], [Id | TT]) :-
+    remove_m_from_AdjIds(T, TT).
 
 %------------------------------------------------------------------
 
