@@ -281,6 +281,13 @@ move(board(R,C,s,Color,Id, StackPosition), R_new,C_new):-
 move(board(R,C,l,Color,Id, StackPosition), R_new,C_new):-
     move_ladybug(board(R,C,l,Color,Id, StackPosition),R_new,C_new),!.
 
+move(board(R,C,g,Color,Id, StackPosition), R_new,C_new):-
+    move_grasshopper(board(R,C,g,Color,Id, StackPosition),R_new,C_new),!.
+
+move(board(R,C,m,Color,Id, StackPosition), R_new,C_new):-
+    move_mosquito(board(R,C,m,Color,Id, StackPosition),R_new,C_new),!.
+move(board(R,C,p,Color,Id, StackPosition), A,B):-
+    move_pillbug(board(R,C,p,Color,Id, StackPosition),A,B),!.
 %Insert
 move(board(C,R,T,Col,Id,SP),aux_board(Name,Type,XPixel,YPixel)):-
     assert(board(C,R,T,Col,Id,SP)),
@@ -288,8 +295,6 @@ move(board(C,R,T,Col,Id,SP),aux_board(Name,Type,XPixel,YPixel)):-
     retract(last_used_id(_)),
     assert(last_used_id(Id)),!.
 
-move(board(R,C,g,Color,Id, StackPosition), R_new,C_new):-
-    move_grasshopper(board(R,C,g,Color,Id, StackPosition),R_new,C_new),!.
 
 % ----------------Queen Move-------------------------------------
 
@@ -317,9 +322,6 @@ move_queen(board(R,C,q,Color,Id, StackPosition),R_new,C_new):-
 
 move_queen(board(R,C,q,Color,Id, StackPosition),R_new,C_new):-
     format('Invalid move'),
-    board(R,C,q,Color,Id, StackPosition),
-    retract(board(R_new,C_new,q,Color,Id, 0)),
-    assert(board(R,C,q,Color,Id, 0)),
     !,fail.
 
 % ----------------------- Grasshopper Move ---------------------------------
@@ -373,9 +375,6 @@ move_grasshopper(board(R,C,g,Color,Id, StackPosition),R_new,C_new):-
 
 move_grasshopper(board(R,C,g,Color,Id, StackPosition),R_new,C_new):-
     format('Invalid move'),
-    board(R,C,g,Color,Id, StackPosition),
-    retract(board(R_new,C_new,g,Color,Id, 0)),
-    assert(board(R,C,g,Color,Id, 0)),
     !,fail.
 
 walk_for_direction(R, C, _, _, _, ValidPos) :-
@@ -667,6 +666,20 @@ valid_mosquito_moves(board(R, C, m, Color, Id, StackPosition), M) :-
     remove_m_from_AdjIds(AdjIds, FilterAdjIds),
 
     valid_mosquito_moves_aux(FilterAdjIds, M).
+valid_mosquito_moves(board(R, C, m, Color, Id, StackPosition), []). 
+move_mosquito(board(R,C,m,Color,Id,SP),R_new,C_new):-
+    board(R,C,m,Color,Id,SP),
+    valid_moves(board(R,C,m,Color,Id,SP),Moves),
+    X = [R_new,C_new],
+    %print(Moves),
+    member(X,Moves),
+    retract(board(R,C,m,Color,Id, StackPosition)),
+    assert(board(R_new,C_new,m,Color,Id, SP)),
+    !.
+move_mosquito(board(R,C,m,Color,Id,SP),R_new,C_new):-
+    format('Invalid move'),
+    !,fail.
+
 
 valid_mosquito_moves_aux([], []) :- !.
 
@@ -752,6 +765,29 @@ valid_pillbug_moves(board(R,C,p,Color,Id,SP),MovesList):-
 
 valid_pillbug_moves(_,[]).
 
+move_pillbug(board(R,C,p,Color,Id, StackPosition),board(R1,C1,T,Color,Id,SP),[R2,C2]):-
+    board(R,C,p,Color,Id, StackPosition),
+    valid_moves(board(R,C,p,Color,Id, StackPosition), Moves),
+    X = [board(R1,C1,T,Color,Id,SP),[R2,C2]],
+    %print(Moves),
+    member(X,Moves),
+    retract(board(R1,C1,T,Color,Id, SP)),
+    assert(board(R2,C2,T,Color,Id, 0)),    
+    !.
+
+move_pillbug(board(R,C,p,Color,Id, StackPosition),R_new,C_new):-
+    board(R,C,p,Color,Id, StackPosition),
+    valid_moves(board(R,C,p,Color,Id, StackPosition), Moves),
+    X = [R_new,C_new],
+    %print(Moves),
+    member(X,Moves),
+    retract(board(R,C,p,Color,Id, StackPosition)),
+    assert(board(R_new,C_new,T,Color,Id, 0)),    
+    !.
+move_pillbug(board(R,C,g,Color,Id, StackPosition),_,_):-
+    format('Invalid move'),
+    !,fail.
+
 drag_adj_taken_moves(MovesL,[[R1,C1]|AdjTaken],Moves):-
     process_adj_taken(MovesL,[R1,C1],Moves1),
     drag_adj_taken_moves(MovesL, AdjTaken, Moves2),
@@ -763,7 +799,7 @@ process_adj_taken([[R,C]|MovesL], [R1,C1],Moves):-
     board(R1,C1,T,Color,Id,SP),
     will_insect_not_break_hive(board(R1,C1,T,Color,Id,SP)),
     not(last_chip_moved_id(Id)),
-    M = [board(R1,C1,T,Color,Id,SP),R,C],
+    M = [board(R1,C1,T,Color,Id,SP),[R,C]],
     process_adj_taken(MovesL, [R1, C1], Moves2),
     append([M],Moves2,Moves).
 process_adj_taken([[R,C]|MovesL], [R1,C1],Moves):-

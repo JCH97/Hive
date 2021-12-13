@@ -1,8 +1,8 @@
 :-[
     './board.pl' ,
-    './move.pl',
+    './logic.pl',
     './utils.pl',
-    './visual.pl'
+    './ui.pl'
  ].
  
  :- dynamic [board/6, plays/1, turn/1].
@@ -26,13 +26,13 @@
 
 % minimax_depth(3).
 
-board(0, 0, p, w, 1, 0).
+board(0, 0, m, w, 1, 0).
 board(-1, -1, b, w, 2, 0).
-board(-2, 0, b, w, 3, 0).
-% board(2, 0, b, w, 4, 0).
-% board(-1, 1, b, w, 5, 0).
-% board(1, 1, b, w, 6, 0).
-% board(0, 2, s, b, 7, 0).
+board(-2, 0, s, b, 3, 0).
+board(2, 0, a, w, 4, 0).
+board(-1, 1, g, w, 5, 0).
+board(1, 1, l, w, 6, 0).
+board(0, 2, q, b, 7, 0).
 
 % board(1, 1, b, w, 6, 0).
 % board(-2, 0, b, w, 3, 0).
