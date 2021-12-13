@@ -770,22 +770,7 @@ process_adj_taken([[R,C]|MovesL], [R1,C1],Moves):-
     process_adj_taken(MovesL, [R1,C1],Moves).
 process_adj_taken([], [R1,C1],[]).
 
-move_queen(board(R,C,q,Color,Id, StackPosition),R_new,C_new):-
-    board(R,C,q,Color,Id, StackPosition),
-    valid_moves(board(R,C,q,Color,Id, StackPosition), Moves),
-    X = [R_new,C_new],
-    %print(Moves),
-    member(X,Moves),
-    retract(board(R,C,q,Color,Id, StackPosition)),
-    assert(board(R_new,C_new,q,Color,Id, 0)),    
-    !.
 
-move_queen(board(R,C,q,Color,Id, StackPosition),R_new,C_new):-
-    format('Invalid move'),
-    board(R,C,q,Color,Id, StackPosition),
-    retract(board(R_new,C_new,q,Color,Id, 0)),
-    assert(board(R,C,q,Color,Id, 0)),
-    !,fail.
 
 %------------------------------------------------------------------
 
