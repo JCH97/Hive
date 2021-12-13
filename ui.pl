@@ -4,13 +4,13 @@
 % dimentions: 55 x 55
 
 :- [
-    './move.pl',
+    './logic.pl',
     './board.pl',
     './IA.pl'
 ].
 
-height(1000).
-width(655).
+% height(1000).
+% width(655).
 size_cards(55).
 start_pos(point(455, 300)).
 left_arrow_pos(55, 0).
@@ -31,6 +31,8 @@ resource(sw, image, image('sw-reduce.jpg')).
 resource(ab, image, image('ab-reduce.jpg')).
 resource(mb, image, image('mb-reduce.jpg')).
 resource(mw, image, image('mw-reduce.jpg')).
+resource(lw, image, image('lw-reduce.jpg')).
+resource(lb, image, image('lb-reduce.jpg')).
 resource(white, image, image('white.jpg')).
 resource(valid, image, image('valid.jpg')).
 resource(leftArrow, image, image('left-arrow.jpg')).
@@ -45,7 +47,7 @@ resource(whiteWin, image, image('white-win.jpg')).
 % clicked_card Name, X, Y, IsFromBoard => almacena el nombre y la posicion de la carta sobre la que se hizo clic y que por tanto es la proxima que hay que pintar en el tablero .
 % ia => ia == 1 esta jugando la ia
 % block => bloquea el clic
-:- dynamic [card_place/4, aux_board/4, drawed_positions/2, clicked_card/4, ia/1, window/1, block/1].
+:- dynamic [card_place/4, aux_board/4, drawed_positions/2, clicked_card/4, ia/1, window/1, block/1, height/1, width/1].
 
 draw_test(Window) :- 
     new_image(Window, _, gb, point(455, 300)),
@@ -57,13 +59,26 @@ draw_test(Window) :-
     % new_image(Window, _, qb, point(427.5, 245)).
 
 
-start() :-
+white_cards([qw, aw, aw, aw, gw, gw, gw, bw, bw, sw, sw]).
+black_cards([qb, ab, ab, ab, gb, gb, gb, bb, bb, sb, sb]).
+
+white_cards_extensions([qw, aw, aw, aw, gw, gw, gw, bw, bw, sw, sw, mw, lw]).
+black_cards_extensions([qb, ab, ab, ab, gb, gb, gb, bb, bb, sb, sb, mb, lb]).
+
+simple_start() :-
+    white_cards(Wc),
+    black_cards(Bc),
+    assert(height(1000)),
+    assert(width(600)),
+    start(Wc, Bc).
+
+start(WhiteCards, BlackCards) :-
     width(W),
     height(H),
     new(Window, window("Hive", size(H, W))),
     assert(window(Window)),
     send(Window, open),
-    draw_board(Window),
+    draw_board(Window, WhiteCards, BlackCards),
     draw_arrows(Window),
     % draw_test(Window),
     send(Window, recogniser, click_gesture(left,
@@ -94,14 +109,17 @@ click_event_handler(Window, Pos) :-
     B =:= 0,
 
     get_card_clicked(Pos, [X, Y | _]),
+
     
     % width(W),
     % height(H),
     % new(Window, window("Hive", size(H, W))),
     
     (X =:= 0; X =:= 945),
-
+    
     !,
+    
+    % check_right_turn(X, Y, 0),
 
     clean_drawed_positions(Window),
     handle_card_out_game(Window, X, Y, Pos, DrawedPositions), 
@@ -122,7 +140,10 @@ click_event_handler(Window, Pos) :-
     block(B),
     B =:= 0,
 
+    
     get_card_clicked(Pos, [X, Y | _]),
+
+    % check_right_turn(X, Y, 1),
     
     handle_card(Window, X, Y, DrawedPositions), 
     % el parametro name indica el nombre de la carta sobre la que se hizo click, es decir la carta que se kiere mover (ya sea de las que estan afuera o del tablero)
@@ -310,14 +331,10 @@ get_card_clicked_aux([[_, _ | _] | []], _, []).
 get_card_clicked_aux([[_, _ | _] | T], ClickPosition, Ans) :-
     get_card_clicked_aux(T, ClickPosition, Ans).
 
-draw_board(Window) :-
+draw_board(Window, Wc, Bc) :-
     size_cards(SZ),
-    draw_board_white_cards(Window, SZ, [
-            qw, aw, aw, aw, gw, gw, gw, bw, bw, sw, sw, mw, mw
-        ], 0, 0),
-    draw_board_black_cards(Window, SZ, [
-            qb, ab, ab, ab, gb, gb, gb, bb, bb, sb, sb, mb, mb
-        ], 945, 0).
+    draw_board_white_cards(Window, SZ, Wc, 0, 0),
+    draw_board_black_cards(Window, SZ, Bc, 945, 0).
 
 draw_board_white_cards(_, _, [], _, _) :- !.
 
@@ -542,7 +559,7 @@ draw_board_extra_aux(Window, [Id | T]) :-
     draw_board_extra_aux(Window, T).
 
 ia_game() :-
-    start(),
+    simple_start,
     % assert(Window),
     retract(ia(_)),
     assert(ia(1)),
@@ -583,40 +600,71 @@ insert_card_into_board_ia([board(R, C, Type, Color, Id, Sp), aux_board(Name, _, 
     fix_ids().
 
 check_end_game() :-
-    end_game(Winner),
-    check_end_game_aux(Winner).
+    end_game(NoWinner),
+    check_end_game_aux(NoWinner).
 
-check_end_game_aux(Winner) :-
-    Winner = n,
+check_end_game_aux(NoWinner) :-
+    NoWinner = n,
     !.
 
 % whites win
-check_end_game_aux(Winner) :-
-    Winner = w,
+check_end_game_aux(NoWinner) :-
+    NoWinner = w,
     retract(block(_)),
     assert(block(1)),
     window(W),
-    new_image(W, _, whiteWin, point(0, 270)),
+    new_image(W, _, blackWin, point(0, 270)),
     !.
 
 % blacks win
-check_end_game_aux(Winner) :-
-    Winner = b,
+check_end_game_aux(NoWinner) :-
+    NoWinner = b,
     retract(block(_)),
     assert(block(1)),
     window(W),
-    new_image(W, _, blackWin, point(700, 270)),
+    new_image(W, _, whiteWin, point(700, 270)),
+    !.
+
+
+check_right_turn(X, Y, IsFromBoard) :-
+
+    % white cards
+    IsFromBoard =:= 0,
+
+    aux_board(_, Color, X, Y),
+
+    check_right_turn_aux(Color),
+
+    !.
+
+check_right_turn(X, Y, _) :-
+    card_place(_, Id, X, Y),
+   
+    board(_, _, _, Color, Id, _),
+
+    check_right_turn_aux(Color),
+
+    !.
+
+
+check_right_turn_aux(Color) :-
+    (   
+        plays(P),
+        R is P mod 2,
+        R =:= 0,
+        Color = w
+    );
+    ( 
+        plays(P),
+        R is P mod 2,
+        R =:= 1,
+        Color = b
+    ),
+
     !.
 
 make_ia_description() :-
-    /*
-    * Crea el objeto dialogo en la variable D
-    */
     new(D, dialog("IA info")),
-    /* 
-    * Crea el objeto boton almacenandolo en la variable @boton de tal forma 
-    * que al pulsar sobre el boton libere la memoria y cierre la ventana)
-    */
 
     send(D, display,
         new(@tx, text("
@@ -626,31 +674,32 @@ make_ia_description() :-
             - El usuario juega primero.
             ")), point(0, 0)), 
 
-    % new(@boton, button("Close",
-    % and(
-    %     message(D, destroy),
-    %     message(D, free),
-    %     message(@boton, free)))),
-    /*
-    * Inserta el botón en el diálogo
-    */
-    % send(D, append(@boton)),
-    /*
-    * Le envia el mensaje open al dialogo para que cree y muestre la ventana.
-    */
     send(D, open).
 
+
+expansion_game() :-
+    white_cards_extensions(Wc),
+    black_cards_extensions(Bc),
+    
+    assert(height(1000)),
+    assert(width(700)),
+
+    start(Wc, Bc).
 
 init() :-
     new(D, dialog('Choose one option')),
     send_list(D, append, [
-            button('User vs User', and(
-                        message(@prolog, start),
+        button('User vs User', and(
+                        message(@prolog, simple_start),
                         message(D, destroy))
                 ),
             button('User vs IA', and(
                         message(@prolog, ia_game),
                         message(D, destroy))
-                    )
+                    ),
+            button('With expansions', and(
+                    message(@prolog, expansion_game),
+                    message(D, destroy))
+                )
         ]),
     send(D, open).

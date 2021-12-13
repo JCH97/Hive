@@ -1,6 +1,6 @@
 :-[
     './board.pl' ,
-    './move.pl',
+    './logic.pl',
     './utils.pl'
 
  ].

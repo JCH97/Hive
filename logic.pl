@@ -7,7 +7,7 @@
 :- dynamic [board/6, plays/1, turn/1].
 
 %% hormigas => a        arannas => s        mosquito => m
-%% saltamontes => g     abeja reina => q
+%% saltamontes => g     abeja reina => q    ladybug => l
 %% escarabajos => b
 
 plays(0).
@@ -17,23 +17,23 @@ last_chip_moved_id(0).
 
 % where_place_piece
 
-end_game(Winner) :-
+end_game(NoWinner) :-
     findall(Id, board(_, _, q, _, Id, _), Queens),
-    end_game_aux(Queens, Winner).
+    end_game_aux(Queens, NoWinner).
 
 end_game_aux([], n) :- !.
 
-end_game_aux([Id | _], Winner) :-
+end_game_aux([Id | _], NoWinner) :-
     board(R, C, _, Color, Id, _),
     address(Addr),
     get_ady_taken(R, C, Addr, Ans),
     length(Ans, L),
     L >= 6,
-    Winner = Color,
+    NoWinner = Color,
     !.
 
-end_game_aux([_ | T], Winner) :-
-    end_game_aux(T, Winner).
+end_game_aux([_ | T], NoWinner) :-
+    end_game_aux(T, NoWinner).
 
 
 where_place_piece(R, C, Color, Ans) :- 
@@ -253,7 +253,8 @@ valid_moves(board(R,C,s,Color,Id, StackPosition),Moves):-
 
 valid_moves(board(R, C, m, Color, Id, StackPosition), Moves) :-
     valid_mosquito_moves(board(R, C, m, Color, Id, StackPosition), M),
-    list_to_set(M, Moves),
+    list_to_set(M, TempMoves),
+    fixed_mosquito_move(Id, TempMoves, Moves),
     !.
 
 valid_moves(board(R, C, l, Color, Id, StackPosition), Moves) :-
@@ -648,6 +649,8 @@ let_adj_do_their_thing_ladybug([[R,C] |Adj],AuxVisited,Level,Moves):-
     let_adj_do_their_thing_ladybug(Adj,AuxVisited,Level,Moves).
 
 let_adj_do_their_thing_ladybug([],AuxVisited,Level,[]).
+
+
 % ----------------------------------------------- Mosquito Moves ------------------------------------------
 valid_mosquito_moves(board(R, C, m, Color, Id, StackPosition), M) :-
     print('mosquito'),
@@ -689,6 +692,36 @@ remove_m_from_AdjIds([Id | T], FilterAdjIds) :-
 
 remove_m_from_AdjIds([Id | T], [Id | TT]) :-
     remove_m_from_AdjIds(T, TT).
+
+fixed_mosquito_move(Id, TempMoves, Moves) :-
+    board(R, C, Type, Color, Id, StackPosition),
+    
+    retract(board(R, C, Type, Color, Id, StackPosition)),
+
+    fixed_mosquito_move_aux(board(R, C, Type, Color, Id, StackPosition), TempMoves, Moves),
+
+    assert(board(R, C, Type, Color, Id, StackPosition)).
+
+fixed_mosquito_move_aux(board(_, _, _, _, _, _), [], []).
+
+fixed_mosquito_move_aux(board(R, C, Type, Color, Id, StackPosition), [[TR, TC | _] | T], Moves) :-
+
+    assert(board(TR, TC, Type, Color, Id, StackPosition)),
+
+    is_valid_board(),
+
+    retract(board(TR, TC, Type, Color, Id, StackPosition)),
+
+    fixed_mosquito_move_aux(board(R, C, Type, Color, Id, StackPosition), T, TempMoves),
+
+    append([[TR, TC]], TempMoves, Moves),
+    !.
+
+fixed_mosquito_move_aux(board(R, C, Type, Color, Id, StackPosition), [[TR, TC | _] | T], Moves) :-
+    retract(board(TR, TC, Type, Color, Id, StackPosition)),
+
+    fixed_mosquito_move_aux(board(R, C, Type, Color, Id, StackPosition), T, Moves).
+
 
 %------------------------------------------------------------------
 
