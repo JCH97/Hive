@@ -2,6 +2,7 @@
     './board.pl' ,
     './move.pl',
     './utils.pl'
+
  ].
  
 %  :- dynamic [board/6, plays/1, turn/1].
@@ -20,6 +21,29 @@
 % aux_board(sw,w,0,10).
 % aux_board(ab,b,0,11).
 
+% aux_board(qw, w, 0, 0).
+% aux_board(aw, w, 0, 55).
+% aux_board(aw, w, 0, 110).
+% aux_board(aw, w, 0, 165).
+% aux_board(gw, w, 0, 220).
+% aux_board(gw, w, 0, 275).
+% aux_board(gw, w, 0, 330).
+% aux_board(bw, w, 0, 385).
+% aux_board(bw, w, 0, 440).
+% aux_board(sw, w, 0, 495).
+% aux_board(sw, w, 0, 550).
+% aux_board(ab, b, 945, 110).
+% aux_board(ab, b, 945, 165).
+% aux_board(gb, b, 945, 220).
+% aux_board(gb, b, 945, 275).
+% aux_board(gb, b, 945, 330).
+% aux_board(bb, b, 945, 385).
+% aux_board(bb, b, 945, 440).
+% aux_board(sb, b, 945, 495).
+% aux_board(sb, b, 945, 550).
+% aux_board(qb, b, 945, 0).
+% aux_board(ab, b, 945, 55).
+
 % board(0,0,q,w,1,0).
 % board(1,1,q,b,2,0).
 % % board(-1,-1,b,w,3,0).
@@ -29,7 +53,7 @@
 % board(-2, 0, b, w, 3, 0).
 % board(2, -2, a, b, 4, 0).
 
-% board(0, 0, q, w, 1, 0).
+% board(0, 0, l, w, 1, 0).
 % board(-1, -1, b, w, 2, 0).
 % board(-2, 0, b, w, 3, 0).
 % board(2, 0, b, w, 4, 0).
@@ -169,6 +193,7 @@ distance_to_opponent_queen(Player,Value):-
     board(C,R,q,Opponent,Id,SP),
     X = board(C,R,q,Opponent,Id,SP),
     sum_distance_from_queen(X,Chips,Value).
+distance_to_opponent_queen(_,0).
 
 sum_distance_from_queen(Queen,[HChip|Chips],Value):-
     distance(Queen,HChip,Dist),
