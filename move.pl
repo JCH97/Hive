@@ -11,6 +11,7 @@
 %% escarabajos => b
 
 plays(0).
+last_chip_moved_id(0).
 
 % board(0, 0, gb, b, 1, 0).
 
@@ -161,12 +162,12 @@ insect_above_me(board(R,C,_,_,_,SP)):-
 will_insect_not_break_hive(board(R,C,Type,Color,Id,SP)):-
     retract(board(R,C,_,_,Id,_)),
     last_used_id(Count),
-    print(Count),
+    % print(Count),
     Aux is Count - 1 ,
     retract(last_used_id(_)),
     assert(last_used_id(Aux)),
     is_valid_board(),
-    print('board is valid \n'),
+    % print('board is valid \n'),
     !,
     assert(board(R,C,Type,Color,Id,SP)),
     retract(last_used_id(_)),
@@ -184,14 +185,15 @@ will_insect_not_break_hive(board(R,C,Type,Color,Id,SP)):-
 adj_path_out(R,C,[R_Dir1,C_Dir1, R_Dir2, C_Dir2 | Addr], Moves):-
     R1_aux is R+R_Dir1,C1_aux is C+C_Dir1,
     R2_aux is R+R_Dir2,C2_aux is C+C_Dir2,
-    print('hi'),
+    % print('hi'),
     not(board(R1_aux,C1_aux,_,_,_,_)),not(board(R2_aux,C2_aux,_,_,_,_)),
     Validated = [[R1_aux,C1_aux],[R2_aux,C2_aux]],
     !,
     adj_path_out(R,C,[R_Dir2,C_Dir2|Addr],MovesAux),
     append(Validated,MovesAux,Moves),
-    print('Moves: ' ),
-    print(MovesAux).
+    % print('Moves: ' ),
+    % print(MovesAux).
+    !.
 
 adj_path_out(R,C,[R_Dir1,C_Dir1, R_Dir2, C_Dir2 | Addr], Moves):-
     adj_path_out(R,C,[R_Dir2,C_Dir2|Addr],Moves).
@@ -226,27 +228,27 @@ get_adj_valid(board(R,C,T,Color,Id, StackPosition),[],[]).
 
 valid_moves(board(R,C,q,Color,Id, StackPosition),Moves):-
     valid_queen_moves(board(R,C,q,Color,Id,StackPosition),MovesList),
-    print(MovesList),    
+    % print(MovesList),    
     list_to_set(MovesList,Moves),!.
 
 valid_moves(board(R,C,b,Color,Id, StackPosition),Moves):-
     valid_beetle_moves(board(R,C,b,Color,Id,StackPosition),MovesList),
-    print(MovesList),    
+    % print(MovesList),    
     list_to_set(MovesList,Moves),!.
 
 valid_moves(board(R,C,a,Color,Id, StackPosition),Moves):-
     valid_ant_moves(board(R,C,a,Color,Id,StackPosition),MovesList),
-    print(MovesList),    
+    % print(MovesList),    
     list_to_set(MovesList,Moves),!.
 
 valid_moves(board(R,C,g,Color,Id, StackPosition),Moves):-
     valid_g_move(board(R,C,g,Color,Id,StackPosition),MovesList),
-    print(MovesList),    
+    % print(MovesList),    
     list_to_set(MovesList,Moves),!.
 
 valid_moves(board(R,C,s,Color,Id, StackPosition),Moves):-
     valid_spider_moves(board(R,C,s,Color,Id,StackPosition),MovesList),
-    print(MovesList),    
+    %print(MovesList),    
     list_to_set(MovesList,Moves),!.
 
 valid_moves(board(R, C, m, Color, Id, StackPosition), Moves) :-
@@ -258,10 +260,13 @@ valid_moves(board(R, C, l, Color, Id, StackPosition), Moves) :-
     valid_ladybug_moves(board(R, C, l, Color, Id, StackPosition), M),
     list_to_set(M, Moves),
     !.
+valid_moves(board(R, C, p, Color, Id, StackPosition), Moves) :-
+    valid_pillbug_moves(board(R, C, p, Color, Id, StackPosition), M),
+    list_to_set(M, Moves),
+    !.
 
 move(board(R, C, q, Color, Id, StackPosition), R_new, C_new):-
     move_queen(board(R, C, q, Color, Id, StackPosition), R_new, C_new), !.
-
 move(board(R,C,b,Color,Id, StackPosition), R_new,C_new):-
     move_beetle(board(R,C,b,Color,Id, StackPosition),R_new,C_new),!.
 
@@ -275,9 +280,15 @@ move(board(R,C,s,Color,Id, StackPosition), R_new,C_new):-
 move(board(R,C,l,Color,Id, StackPosition), R_new,C_new):-
     move_ladybug(board(R,C,l,Color,Id, StackPosition),R_new,C_new),!.
 
+%Insert
+move(board(C,R,T,Col,Id,SP),aux_board(Name,Type,XPixel,YPixel)):-
+    assert(board(C,R,T,Col,Id,SP)),
+    retract(aux_board(Name,Type,XPixel,YPixel)),
+    retract(last_used_id(_)),
+    assert(last_used_id(Id)),!.
 
-% move(board(R,C,g,Color,Id, StackPosition), R_new,C_new):-
-%     move_grasshopper(board(R,C,g,Color,Id, StackPosition),R_new,C_new),!.
+move(board(R,C,g,Color,Id, StackPosition), R_new,C_new):-
+    move_grasshopper(board(R,C,g,Color,Id, StackPosition),R_new,C_new),!.
 
 % ----------------Queen Move-------------------------------------
 
@@ -285,9 +296,9 @@ valid_queen_moves(board(R,C,q,Color,Id,SP),MovesList):-
     print('queen'),
     board(R,C,q,Color,Id,SP),
     not(insect_above_me(board(R,C,q,Color,Id,SP))),
-    print('no insect above me. \n'),
+    %print('no insect above me. \n'),
     will_insect_not_break_hive(board(R,C,q,Color,Id,SP)),
-    print('will_insect_not_break_hive \n'),
+    %print('will_insect_not_break_hive \n'),
     address(Addr),
     adj_path_out(R,C,Addr,MovesList1),   
     get_adj_valid(board(R,C,q,Color,Id,SP),MovesList1,MovesList).
@@ -297,7 +308,7 @@ move_queen(board(R,C,q,Color,Id, StackPosition),R_new,C_new):-
     board(R,C,q,Color,Id, StackPosition),
     valid_moves(board(R,C,q,Color,Id, StackPosition), Moves),
     X = [R_new,C_new],
-    print(Moves),
+    %print(Moves),
     member(X,Moves),
     retract(board(R,C,q,Color,Id, StackPosition)),
     assert(board(R_new,C_new,q,Color,Id, 0)),    
@@ -313,10 +324,11 @@ move_queen(board(R,C,q,Color,Id, StackPosition),R_new,C_new):-
 % ----------------------- Grasshopper Move ---------------------------------
 
 valid_g_move(board(R, C, g, Color, Id, StackPosition), ValidPos) :-
+    print('Grasshopper'),
     board(R, C, g, Color, Id, StackPosition),
 
     not(insect_above_me(board(R, C, g, Color, Id, StackPosition))),
-    format("no insect above me. \n"),
+    % format("no insect above me. \n"),
 
     will_insect_not_break_hive(board(R,C,g,Color,Id,StackPosition)),
 
@@ -325,6 +337,7 @@ valid_g_move(board(R, C, g, Color, Id, StackPosition), ValidPos) :-
 
     valid_g_move_aux(board(R, C, g, Color, Id, StackPosition), Adj , ValidPos).
 
+valid_g_move(board(R, C, g, Color, Id, StackPosition), []).
 
 valid_g_move_aux(board(R, C, g, Color, Id, StackPosition), [HAdj | TAdj], ValidPos) :-
     board(R, C, g, Color, Id, StackPosition),
@@ -346,6 +359,23 @@ valid_g_move_aux(board(R, C, g, Color, Id, StackPosition), [HAdj | TAdj], ValidP
     !.
     
 valid_g_move_aux(board(_, _, g, _, _, _), [], []).
+
+move_grasshopper(board(R,C,g,Color,Id, StackPosition),R_new,C_new):-
+    board(R,C,g,Color,Id, StackPosition),
+    valid_moves(board(R,C,g,Color,Id, StackPosition), Moves),
+    X = [R_new,C_new],
+    %print(Moves),
+    member(X,Moves),
+    retract(board(R,C,g,Color,Id, StackPosition)),
+    assert(board(R_new,C_new,g,Color,Id, 0)),    
+    !.
+
+move_grasshopper(board(R,C,g,Color,Id, StackPosition),R_new,C_new):-
+    format('Invalid move'),
+    board(R,C,g,Color,Id, StackPosition),
+    retract(board(R_new,C_new,g,Color,Id, 0)),
+    assert(board(R,C,g,Color,Id, 0)),
+    !,fail.
 
 walk_for_direction(R, C, _, _, _, ValidPos) :-
     not(board(R, C, _, _, _, _)),
@@ -370,9 +400,9 @@ valid_beetle_moves(board(R,C,b,Color,Id,SP),MovesList):-
     print('beetle'),
     board(R,C,b,Color,Id,SP),
     not(insect_above_me(board(R,C,b,Color,Id,SP))),
-    print('no insect above me. \n'),
+    %print('no insect above me. \n'),
     will_insect_not_break_hive(board(R,C,b,Color,Id,SP)),
-    print('will_insect_not_break_hive \n'),
+    %print('will_insect_not_break_hive \n'),
     address(Addr),
     adj_path_out(R,C,Addr,Adjs),
     get_adj_valid(board(R,C,b,Color,Id,SP),Adjs, AdjMoves),
@@ -385,7 +415,7 @@ move_beetle(board(R,C,b,Color,Id, StackPosition),R_new,C_new):-
     board(R,C,b,Color,Id, StackPosition),
     valid_moves(board(R,C,b,Color,Id, StackPosition), Moves),
     X = [R_new,C_new],
-    print(Moves),
+    %print(Moves),
     member(X,Moves),
     retract(board(R,C,b,Color,Id, StackPosition)),
     (
@@ -407,9 +437,9 @@ valid_ant_moves(board(R,C,a,Color,Id,SP),MovesList):-
     print('ant'),
     board(R,C,a,Color,Id,SP),
     not(insect_above_me(board(R,C,a,Color,Id,SP))),
-    print('no insect above me. \n'),
+    %print('no insect above me. \n'),
     will_insect_not_break_hive(board(R,C,a,Color,Id,SP)),
-    print('will_insect_not_break_hive \n'),
+    %print('will_insect_not_break_hive \n'),
     address(Addr),
     adj_path_out(R,C,Addr,Adjs),
     get_adj_valid(board(R,C,a,Color,Id,SP),Adjs, AdjMoves),
@@ -426,7 +456,7 @@ move_ant(board(R,C,a,Color,Id,SP),R_new,C_new):-
     board(R,C,a,Color,Id,SP),
     valid_moves(board(R,C,a,Color,Id,SP),Moves),
     X = [R_new,C_new],
-    print(Moves),
+    %print(Moves),
     member(X,Moves),
     retract(board(R,C,a,Color,Id, StackPosition)),
     assert(board(R_new,C_new,a,Color,Id, SP)),
@@ -474,9 +504,9 @@ valid_spider_moves(board(R,C,s,Color,Id,SP),MovesList):-
     print('Spider'),
     board(R,C,s,Color,Id,SP),
     not(insect_above_me(board(R,C,s,Color,Id,SP))),
-    print('no insect above me. \n'),
+    %print('no insect above me. \n'),
     will_insect_not_break_hive(board(R,C,s,Color,Id,SP)),
-    print('will_insect_not_break_hive \n'),
+    %print('will_insect_not_break_hive \n'),
     address(Addr),
     adj_path_out(R,C,Addr,Adjs),
     adj_with_taken_in_common(R,C,Adjs,AdjMoves),
@@ -492,7 +522,7 @@ move_spider(board(R,C,s,Color,Id,SP),R_new,C_new):-
     board(R,C,s,Color,Id,SP),
     valid_moves(board(R,C,s,Color,Id,SP),Moves),
     X = [R_new,C_new],
-    print(Moves),
+    %print(Moves),
     member(X,Moves),
     retract(board(R,C,s,Color,Id, StackPosition)),
     assert(board(R_new,C_new,s,Color,Id, SP)),
@@ -561,9 +591,9 @@ valid_ladybug_moves(board(R,C,l,Color,Id,SP),MovesList):-
     print('LadyBug'),
     board(R,C,l,Color,Id,SP),
     not(insect_above_me(board(R,C,l,Color,Id,SP))),
-    print('no insect above me. \n'),
+    %print('no insect above me. \n'),
     will_insect_not_break_hive(board(R,C,l,Color,Id,SP)),
-    print('will_insect_not_break_hive \n'),
+    %print('will_insect_not_break_hive \n'),
     address(Addr),
     get_ady_taken(R,C,Addr,Ans),
     get_location_by_id(Ans,AdjTaken),
@@ -580,7 +610,7 @@ move_ladybug(board(R,C,l,Color,Id,SP),R_new,C_new):-
     board(R,C,l,Color,Id,SP),
     valid_moves(board(R,C,l,Color,Id,SP),Moves),
     X = [R_new,C_new],
-    print(Moves),
+    %print(Moves),
     member(X,Moves),
     retract(board(R,C,l,Color,Id, StackPosition)),
     assert(board(R_new,C_new,l,Color,Id, SP)),
@@ -620,7 +650,7 @@ let_adj_do_their_thing_ladybug([[R,C] |Adj],AuxVisited,Level,Moves):-
 let_adj_do_their_thing_ladybug([],AuxVisited,Level,[]).
 % ----------------------------------------------- Mosquito Moves ------------------------------------------
 valid_mosquito_moves(board(R, C, m, Color, Id, StackPosition), M) :-
-    
+    print('mosquito'),
     not(insect_above_me(board(R, C, m, Color, Id, StackPosition))),
     
     format("no insect above me. \n"),
@@ -662,51 +692,70 @@ remove_m_from_AdjIds([Id | T], [Id | TT]) :-
 
 %------------------------------------------------------------------
 
-    
+%----------------------PillBug-------------------------------------
 
-    % adj_path_out(R,C,[R_Dir1,C_Dir1, R_Dir2, C_Dir2 | Addr], Moves):-
-%--------------------- Ant Move -------------------------------------
-
-valids_a_move(board(R, C, a, Color, Id, StackPosition), ValidPos) :- 
-    board(R, C, a, Color, Id, StackPosition),
-
-    not(insect_above_me(board(R, C, aa, Color, Id, StackPosition))),
-    format("no insect above me. \n"),
-
-    % will_insect_not_break_hive(board(R, C, a, Color, Id, StackPosition)),
-    % print('will_insect_not_break_hive \n'),
-
+valid_pillbug_moves(board(R,C,p,Color,Id,SP),MovesList):-
+    print('pillbug'),
+    board(R,C,p,Color,Id,SP),
+    not(insect_above_me(board(R,C,p,Color,Id,SP))),
+    %print('no insect above me. \n'),
+    %print('will_insect_not_break_hive \n'),
     address(Addr),
-    adj_path_out(R, C, Addr, MovesListOut), 
-    length(MovesListOut, Len),
-    Len > 0,
+    adj_path_out(R,C,Addr,MovesList1),  
+    get_ady_taken(R,C,Addr,Ids),
+    get_location_by_id(Ids,AdjTaken),
+    drag_adj_taken_moves(MovesList1,AdjTaken,MovesList2), 
+    (
+        (        
+            will_insect_not_break_hive(board(R,C,p,Color,Id,SP)),
+            get_adj_valid(board(R,C,p,Color,Id,SP),MovesList1,MovesList3),
+            append(MovesList3,MovesList2,MovesList)    
+        );
+        (
+             MovesList = MovesList2
+        )
+    ).
 
-    retract(board(_, _, a, _, Id, _)),
-    valids_a_move_aux(R, C, ValidPos),
+
+valid_pillbug_moves(_,[]).
+
+drag_adj_taken_moves(MovesL,[[R1,C1]|AdjTaken],Moves):-
+    process_adj_taken(MovesL,[R1,C1],Moves1),
+    drag_adj_taken_moves(MovesL, AdjTaken, Moves2),
+    append(Moves1,Moves2,Moves).
+drag_adj_taken_moves(MovesL,[],[]).
+
+process_adj_taken([[R,C]|MovesL], [R1,C1],Moves):-
+    highest_SP(R1,C1,SP),
+    board(R1,C1,T,Color,Id,SP),
+    will_insect_not_break_hive(board(R1,C1,T,Color,Id,SP)),
+    not(last_chip_moved_id(Id)),
+    M = [board(R1,C1,T,Color,Id,SP),R,C],
+    process_adj_taken(MovesL, [R1, C1], Moves2),
+    append([M],Moves2,Moves).
+process_adj_taken([[R,C]|MovesL], [R1,C1],Moves):-
+    process_adj_taken(MovesL, [R1,C1],Moves).
+process_adj_taken([], [R1,C1],[]).
+
+move_queen(board(R,C,q,Color,Id, StackPosition),R_new,C_new):-
+    board(R,C,q,Color,Id, StackPosition),
+    valid_moves(board(R,C,q,Color,Id, StackPosition), Moves),
+    X = [R_new,C_new],
+    %print(Moves),
+    member(X,Moves),
+    retract(board(R,C,q,Color,Id, StackPosition)),
+    assert(board(R_new,C_new,q,Color,Id, 0)),    
     !.
 
-valids_a_move_aux(R, C , ValidPos) :-
-    % print(HR),
-    % print(HC),
-    format("Check now position <~w ~w>", [R, C]),
-    address(Addr),
-    get_ady_free(R, C, Addr, FreeAdj),
-    get_adj_valids_for_ant_aux(FreeAdj, ValidPos).
+move_queen(board(R,C,q,Color,Id, StackPosition),R_new,C_new):-
+    format('Invalid move'),
+    board(R,C,q,Color,Id, StackPosition),
+    retract(board(R_new,C_new,q,Color,Id, 0)),
+    assert(board(R,C,q,Color,Id, 0)),
+    !,fail.
 
-get_adj_valids_for_ant_aux([[R | [C | _]] | TF], Ans) :-
-    address(Addr),
-    % board(R, C, _, _, HF, _),
-    format("get_adj_valids_for_ant_aux for <~w ~w>", [R, C]),
-    get_ady_taken(R, C, Addr, AdjTaken),
-    length(AdjTaken, L),
-    L > 0,
+%------------------------------------------------------------------
 
-    % valids_a_move_aux(R, C, ),
     
-    get_adj_valids_for_ant_aux(TF, AnsAux),
-    append([[R, C]], AnsAux, Ans).
 
-
-
-
-
+ 
