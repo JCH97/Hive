@@ -765,14 +765,14 @@ valid_pillbug_moves(board(R,C,p,Color,Id,SP),MovesList):-
 
 valid_pillbug_moves(_,[]).
 
-move_pillbug(board(R,C,p,Color,Id, StackPosition),board(R1,C1,T,Color,Id,SP),[R2,C2]):-
+move_pillbug(board(R,C,p,Color,Id, StackPosition),board(R1,C1,T,Color1,Id1,SP),[R2,C2]):-
     board(R,C,p,Color,Id, StackPosition),
     valid_moves(board(R,C,p,Color,Id, StackPosition), Moves),
-    X = [board(R1,C1,T,Color,Id,SP),[R2,C2]],
+    X = [board(R1,C1,T,Color1,Id1,SP),[R2,C2]],
     %print(Moves),
     member(X,Moves),
-    retract(board(R1,C1,T,Color,Id, SP)),
-    assert(board(R2,C2,T,Color,Id, 0)),    
+    retract(board(R1,C1,T,Color1,Id1, SP)),
+    assert(board(R2,C2,T,Color1,Id1, 0)),    
     !.
 
 move_pillbug(board(R,C,p,Color,Id, StackPosition),R_new,C_new):-
@@ -782,7 +782,7 @@ move_pillbug(board(R,C,p,Color,Id, StackPosition),R_new,C_new):-
     %print(Moves),
     member(X,Moves),
     retract(board(R,C,p,Color,Id, StackPosition)),
-    assert(board(R_new,C_new,T,Color,Id, 0)),    
+    assert(board(R_new,C_new,p,Color,Id, 0)),    
     !.
 move_pillbug(board(R,C,g,Color,Id, StackPosition),_,_):-
     format('Invalid move'),

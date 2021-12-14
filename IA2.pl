@@ -26,13 +26,13 @@
 
 % minimax_depth(3).
 
-% board(0, 0, m, w, 1, 0).
+% board(0, 0, q, w, 1, 0).
 % board(-1, -1, b, w, 2, 0).
 % board(-2, 0, s, b, 3, 0).
-% board(2, 0, a, w, 4, 0).
+% board(2, 0, p, w, 4, 0).
 % board(-1, 1, g, w, 5, 0).
 % board(1, 1, l, w, 6, 0).
-% board(0, 2, q, b, 7, 0).
+% % board(0, 2, q, b, 7, 0).
 
 % board(1, 1, b, w, 6, 0).
 % board(-2, 0, b, w, 3, 0).
@@ -125,6 +125,13 @@ alphabeta([HMove|Moves],Player,Level,AlphaIn,BetaIn,CurrValue,Value,Move):-
 
             );
             (
+                HMove = [board(C,R,T,Col,Id,SP),board(C1,R1,T1,Col1,Id1,SP1),[C2,R2]],
+                 tab(Level*10),writeln('S-retract pillbug'),
+                retract(board(C2,R2,T1,Col1,Id1,_)),
+                assert(board(C1,R1,T1,Col1,Id1,SP1)),
+                 tab(Level*10),writeln('S-retract')
+            );
+            (
                 HMove = [board(C,R,T,Col,Id,SP),CNew,RNew],
                  tab(Level*10),writeln('S-retract '),
                 retract(board(CNew,RNew,T,Col,Id,_)),
@@ -178,6 +185,7 @@ alphabeta([HMove|Moves],Player,Level,AlphaIn,BetaIn,CurrValue,Value,Move):-
          tab(Level*10),writeln('E-Go to next Level Max'),
 
         (
+            tab(Level*10),writeln(HMove),
             (
                 HMove = [board(C,R,T,Col,Id,SP),aux_board(Name,Type,XPixel,YPixel)],
                  tab(Level*10),writeln('S-retract aux'),
@@ -188,6 +196,13 @@ alphabeta([HMove|Moves],Player,Level,AlphaIn,BetaIn,CurrValue,Value,Move):-
                 assert(last_used_id(LastId)),
                  tab(Level*10),writeln('E-retract aux')
 
+            );
+            (
+                HMove = [board(C,R,T,Col,Id,SP),board(C1,R1,T1,Col1,Id1,SP1),[C2,R2]],
+                 tab(Level*10),writeln('S-retract pillbug'),
+                retract(board(C2,R2,T1,Col1,Id1,_)),
+                assert(board(C1,R1,T1,Col1,Id1,SP1)),
+                 tab(Level*10),writeln('S-retract')
             );
             (
                 HMove = [board(C,R,T,Col,Id,SP),CNew,RNew],
