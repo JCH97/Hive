@@ -1,9 +1,8 @@
 :-[
     './board.pl' ,
     './logic.pl',
-    './utils.pl',
-    './ui.pl'
- ].
+    './utils.pl'
+].
  
  :- dynamic [board/6, plays/1, turn/1].
  
@@ -49,7 +48,8 @@ functioning1(CurrPlayer,Move):-
     Move = [board(C,R,q,CurrPlayer,Id,SP),B]);
 
     functioning_aux1(CurrPlayer,0,-1000000000,1000000000,Value,Move),
-    writeln(Value).
+    writeln(Value),
+    !.
 
 functioning_aux1(CurrPlayer,Level,AlphaIn,BetaIn,Value,Move):-
      tab(Level*10),

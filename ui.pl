@@ -6,7 +6,7 @@
 :- [
     './logic.pl',
     './board.pl',
-    './IA.pl'
+    './IA2.pl'
 ].
 
 % height(1000).
@@ -48,15 +48,6 @@ resource(whiteWin, image, image('white-win.jpg')).
 % ia => ia == 1 esta jugando la ia
 % block => bloquea el clic
 :- dynamic [card_place/4, aux_board/4, drawed_positions/2, clicked_card/4, ia/1, window/1, block/1, height/1, width/1].
-
-draw_test(Window) :- 
-    new_image(Window, _, gb, point(455, 300)),
-    % new_image(Window, _, qb, point(427.5, 355)),
-    new_image(Window, _, qb, point(482.5, 245)).
-    % new_image(Window, _, qb, point(482.5, 355)),
-    % new_image(Window, _, qb, point(482.5, 245)),
-    % new_image(Window, _, qb, point(455, 190)),
-    % new_image(Window, _, qb, point(427.5, 245)).
 
 
 white_cards([qw, aw, aw, aw, gw, gw, gw, bw, bw, sw, sw]).
@@ -101,9 +92,32 @@ new_image(Win, Fig, Imagen, Pos) :-
     send(Win, display, Fig, Pos).
     % TODO: add card to board => Set last used Id when testing
 
+click_event_handler(Window, Pos) :-
+    click_event_handler_aux(Window, Pos),
+
+    can_play_ia().
+
+can_play_ia() :-
+    ia(Ia),
+    Ia =:= 1,
+
+    fix_card_place(),
+
+    plays(P),
+    R is P mod 2,
+    R =:= 1,
+
+    ia_game_play(),
+    
+    fix_card_place(),
+    !.
+
+can_play_ia() :- !.
+
+
 
 % si hay que poner una carta de las que hay afuera del tablero
-click_event_handler(Window, Pos) :-
+click_event_handler_aux(Window, Pos) :-
 
     block(B),
     B =:= 0,
@@ -129,13 +143,12 @@ click_event_handler(Window, Pos) :-
     
     check_end_game().
 
-    % ia_game_play().
 
     % draw_board_extra(Window).
     
 
 % si se va a mover una carta del tablero
-click_event_handler(Window, Pos) :-
+click_event_handler_aux(Window, Pos) :-
 
     block(B),
     B =:= 0,
@@ -157,10 +170,7 @@ click_event_handler(Window, Pos) :-
 
     draw_arrows(Window),
     
-    check_end_game().
-
-    % ia_game_play().
-    
+    check_end_game().    
     % draw_board_extra(Window).
 
 
@@ -194,6 +204,9 @@ handle_card_out_game(Window, X, Y, _, []) :-
     new_image(Window, _, white, point(X, Y)),
     retract(aux_board(Type, Color, X, Y)),
     make_entry_in_board(0, 0, Type, Color, 0, Nx, Ny),
+    clean_drawed_positions(Window),
+    can_play_ia(),
+    % ia_game_play(),
     draw_arrows(Window),
     !.
 
@@ -226,6 +239,7 @@ handle_card(Window, X, Y, _) :-
     draw_arrows(Window),
 
     draw_board_extra(Window),
+
     !.
 
 % para mover una carta del tablero 
@@ -402,6 +416,10 @@ make_entry_in_board(R, C, Type, Color, SP, X, Y) :-
     assert(card_place(Type, NewId, X, Y)).
 
 draw_arrows(Window) :-
+
+    ia(Ia),    
+    Ia =:= 0,
+
     plays(P),
     R is P mod 2,
     R =:= 0,
@@ -416,11 +434,16 @@ draw_arrows(Window) :-
 
 draw_arrows(Window) :-
     % draw right arrow
+    ia(Ia),
+    Ia =:= 0,
 
     left_arrow_pos(LX, LY),
     right_arrow_pos(RX, RY),
     new_image(Window, _, white, point(LX, LY)),
-    new_image(Window, _, rightArrow, point(RX, RY)).
+    new_image(Window, _, rightArrow, point(RX, RY)),
+    !.
+
+draw_arrows(_) :- !.
 
 map_from_compuest_type(Type, NewType) :- 
     sub_atom(Type, 0, 1, _, NewType).
@@ -574,7 +597,8 @@ ia_game_play() :-
     % assert(ia(2)),
     window(Window),
     make_move_ia(Move),
-    game_aux_ia(Window, Move).
+    game_aux_ia(Window, Move),
+    new_play().
 
 game_aux_ia(Window, Move) :-
     length(Move, L),
@@ -586,7 +610,7 @@ game_aux_ia(Window, Move) :-
 game_aux_ia(Window, board(_, _, Type, Color, Id, Sp), Col, Row) :-
     retract(board(_, _, _, _, Id, _)),
     retract(card_place(_, Id, _, _)),
-    assert(board(Row, Col, Type, Color, Id, Sp)),
+    % assert(board(Row, Col, Type, Color, Id, Sp)),
     fix_ids(),
     draw_board_extra(Window),
     !.
@@ -594,9 +618,9 @@ game_aux_ia(Window, board(_, _, Type, Color, Id, Sp), Col, Row) :-
 make_move_ia(Move) :-
     functioning1(b, Move).
 
-insert_card_into_board_ia([board(R, C, Type, Color, Id, Sp), aux_board(Name, _, X, Y)]) :-
+insert_card_into_board_ia([board(R, C, Type, Color, Id, Sp), aux_board(_ , _, X, Y)]) :-
     assert(board(R, C, Type, Color, Id, Sp)),
-    retract(aux_board(Name, Id, X, Y)),
+    retract(aux_board(_, _, X, Y)),
     fix_ids().
 
 check_end_game() :-
@@ -662,6 +686,24 @@ check_right_turn_aux(Color) :-
     ),
 
     !.
+
+fix_card_place() :-
+    retractall(card_place(_, _, _, _)),
+    findall([R, C, Type, Color, Id], board(R, C, Type, Color, Id, _), Ans),
+    fix_card_place_aux(Ans).
+
+fix_card_place_aux([]) :- !.
+
+fix_card_place_aux([[R, C, Type, Color, Id | _] | T]) :-
+    start_pos(StartPos),
+    get(StartPos, x, SX),
+    get(StartPos, y, SY),
+    X is (R / 2) * 55 + SX,
+    Y is C * 55 + SY,
+    atom_concat(Type, Color, NewCard),
+    assert(card_place(NewCard, Id, X, Y)),
+    fix_card_place_aux(T).
+
 
 make_ia_description() :-
     new(D, dialog("IA info")),
