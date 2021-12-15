@@ -9,6 +9,8 @@
 
 
 
+Enlace al repositorio de GitHub: https://github.com/JCH97/Hive
+
 ​	Independientemente de lo expuesto en este informe, exhortamos a los que lo lean a chequear la implementación que se expone y a consultar cualquier duda con los autores del mismo.
 
 
